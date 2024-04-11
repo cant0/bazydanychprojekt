@@ -23,8 +23,8 @@
 
 --- 
 
-# 1.  Zakres i krótki opis systemu
-Naszym celem jest stworzenie kompleksowego systemu baz danych, który umożliwi efektywne zarządzanie procesem wypożyczania samochodów. 
+# 1.  Zakres i krótki opis systemuuu
+Naszym celem jest stworzenie systemu baz danych, który umożliwi efektywne zarządzanie procesem wypożyczania samochodów. 
 
 Nasza baza danych będzie składała się z informacji o flocie samochodowej (dostępnych do wypożyczenia jak i tych wypożyczonych). Będzie zawierać informacje o pracownikach i klientach. Informacje dotyczące najmu: daty najmu, przebieg samochodu, nadchodzące serwisy  
 # 2.	Wymagania i funkcje systemu
