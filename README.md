@@ -17,18 +17,17 @@
 ---
 
 
-**Temat:** (zwięzła nazwa projektowanego systemu)
+**Temat:** Wypożyczalnia samochodów
 
-**Autorzy:** (Imiona i nazwiska autorów)
+**Autorzy:** Katarzyna Studnicka, Grzegorz Szczurek, Wiktor Piotrowski, Dawid Czesak
 
 --- 
 
 # 1.  Zakres i krótki opis systemu
+Naszym celem jest stworzenie kompleksowego systemu baz danych, który umożliwi efektywne zarządzanie procesem wypożyczania samochodów. 
 
-(np. Cel projektu, słowny opis realizowanego systemu systemu)
-
-
-# 2.	Wymagania i funkcje systemu
+Nasza baza danych będzie składała się z informacji o flocie samochodowej (dostępnych do wypożyczenia jak i tych wypożyczonych). Będzie zawierać informacje o pracownikach i klientach. Informacje dotyczące najmu: daty najmu, przebieg samochodu, nadchodzące serwisy  
+# 2.	Wymagania i funkcje systemuasdasd
 
 (np. lista wymagań, np. historyjki użytkownika, np. przypadki użycia itp.)
 
