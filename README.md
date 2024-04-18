@@ -25,10 +25,13 @@
 
 # 1.  Zakres i krótki opis systemu
 Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, który umożliwi zarządzanie procesem wypożyczania. System ten będzie stanowił miejsce, w którym przechowywane będą wszystkie informacje związane z flotą samochodową, klientami oraz pracownikami. 
-### Opis systemu:
-    Flota samochodowa: Baza danych będzie zawierała informacje o dostępnych samochodach do wypożyczenia, takie jak marka, model, rok produkcji, numer rejestracyjny, klasa samochodu (np. kompaktowy, SUV, luksusowy), dostępność, przebieg, data ostatniego serwisu itp.
-    Klienci: System będzie śledził dane klientów, w tym ich imiona, nazwiska, adresy, numery telefonów, adresy e-mail, historię wypożyczeń, rabaty, preferencje (np. preferowany typ samochodu), a także informacje o ewentualnych zaległościach finansowych.
-    Pracownicy: Baza danych będzie przechowywała dane o pracownikach wypożyczalni, takie jak imiona, nazwiska, stanowiska, numery identyfikacyjne, daty zatrudnienia, uprawnienia (np. do wystawiania umów najmu), a także informacje o wynagrodzeniach.
+### Opis systemu
+
+Flota samochodowa: Baza danych będzie zawierała informacje o dostępnych samochodach do wypożyczenia, takie jak marka, model, rok produkcji, numer rejestracyjny, klasa samochodu (np. kompaktowy, SUV, luksusowy), dostępność, przebieg, data ostatniego serwisu itp.
+    
+Klienci: System będzie śledził dane klientów, w tym ich imiona, nazwiska, adresy, numery telefonów, adresy e-mail, historię wypożyczeń, rabaty, preferencje (np. preferowany typ samochodu), a także informacje o ewentualnych zaległościach finansowych.
+
+Pracownicy: Baza danych będzie przechowywała dane o pracownikach wypożyczalni, takie jak imiona, nazwiska, stanowiska, numery identyfikacyjne, daty zatrudnienia, uprawnienia (np. do wystawiania umów najmu), a także informacje o wynagrodzeniach.
 
 # 2.	Wymagania i funkcje systemu
 ### Wymagania funkcjonalne:
