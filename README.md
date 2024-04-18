@@ -33,6 +33,8 @@ Klienci: System będzie śledził dane klientów, w tym ich imiona, nazwiska, ad
 
 Pracownicy: Baza danych będzie przechowywała dane o pracownikach wypożyczalni, takie jak imiona, nazwiska, stanowiska, numery identyfikacyjne, daty zatrudnienia, uprawnienia (np. do wystawiania umów najmu), a także informacje o wynagrodzeniach.
 
+???proces wypozyczenia???
+
 # 2.	Wymagania i funkcje systemu
 ### Wymagania funkcjonalne:
 - Dodawanie nowego klienta do bazy danych.
@@ -42,8 +44,7 @@ Pracownicy: Baza danych będzie przechowywała dane o pracownikach wypożyczalni
 
 ### Wymagania niefunkcjonalne:
 - Wydajność: System powinien obsługiwać duże ilości danych.
-- Bezpieczeństwo: Dostęp do danych powinien być zabezpieczony.
-- Interfejs użytkownika: Prosty i intuicyjny interfejs dla klientów i pracowników.
+- 
 
 # 3.	Projekt bazy danych
 
