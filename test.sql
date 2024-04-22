@@ -1,1 +1,0 @@
-sp_MSrepl_testadminconnection
