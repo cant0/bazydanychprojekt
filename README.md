@@ -67,7 +67,7 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 
 ## Schemat bazy danych
 
-(diagram (rysunek) przedstawiający schemat bazy danych) 
+![img.png](img.png)
 
 ## Opis poszczególnych tabel
 
