@@ -72,7 +72,7 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 ## Opis poszczególnych tabel
 
 # Nazwa tabeli: Klienci
-- Opis: (opis tabeli, komentarz)
+- Opis: (Tabela przedstawiająca wszystkich klientow wyporzyczalni, komentarz)
 
 | Nazwa atrybutu | Typ           | Opis/Uwagi               |
 |----------------|---------------|--------------------------|
