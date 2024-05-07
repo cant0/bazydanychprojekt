@@ -159,24 +159,32 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 # Nazwa tabeli: Samochody
 - Opis: (opis tabeli, komentarz)
 
-| Nazwa atrybutu           | Typ           | Opis/Uwagi                             |
-|--------------------------|---------------|----------------------------------------|
-| id_samochodu             | int           | klucz główny tabeli                    |
-| marka                    | nvarchar(30)  | marka samochodu                        |
-| model                    | nvarchar(50)  | model samochodu                        |
-| rok_produkcji            | int           | rok produckji samochodu                |
-| kolor                    | nvarchar(20)  | kolor samochodu                        |
-| klasa_samochodu          | nvarchar(5)   | klasa samochodu                        |
-| numer_rejestracyjny      | nvarchar(20)  | numer rejestracyjny samochodu          |
-| przebieg                 | int           | przebieg samochodu                     |
-| miejsca_siedzące         | int           | liczba miejsc siedzących w samochodzie |
-| skrzynia_biegow          | nvarchar(3)   | skrzynia biegów w samochodzie          |
-| naped                    | int           | dostępny napęd w samochodzie           |
-| pojemnosc_silnika        | decimal(3,1)  | pojemność silnika w samochodzie        |
-| stan_techniczny          | nvarchar(20)  | stan techniczny samochodu              |
-| dostepnosc               | nvarchar(20)  | dostępność samochodu w wypożyczalni    |
-| cena_wypozyczenia_dobowa | decimal(10,2) | dobowa cena wypożyczenia samochodu     |
-| wypozazenie              | int           | klucz obcy ?????????                   |
+| Nazwa atrybutu      | Typ           | Opis/Uwagi                             |
+|---------------------|---------------|----------------------------------------|
+| id_samochodu        | int           | klucz główny tabeli                    |
+| rok_produkcji       | int           | rok produckji samochodu                |
+| kolor               | nvarchar(20)  | kolor samochodu                        |
+| klasa_samochodu     | nvarchar(5)   | klasa samochodu                        |
+| numer_rejestracyjny | nvarchar(20)  | numer rejestracyjny samochodu          |
+| przebieg            | int           | przebieg samochodu                     |
+| miejsca_siedzące    | int           | liczba miejsc siedzących w samochodzie |
+| skrzynia_biegow     | nvarchar(3)   | skrzynia biegów w samochodzie          |
+| naped               | int           | dostępny napęd w samochodzie           |
+| pojemnosc_silnika   | decimal(3,1)  | pojemność silnika w samochodzie        |
+| stan_techniczny     | nvarchar(20)  | stan techniczny samochodu              |
+| dostepnosc          | nvarchar(20)  | dostępność samochodu w wypożyczalni    |
+| cena                | decimal(10,2) | dobowa cena wypożyczenia samochodu     |
+| id_modelu           | int           | klcuz obcy ???????                     |
+
+
+# Nazwa tabeli: Wyposazenie_w_samochodzie
+- Opis: (opis tabeli, komentarz)
+
+| Nazwa atrybutu | Typ           | Opis/Uwagi                                                 |
+|----------------|---------------|------------------------------------------------------------|
+| id_samochodu   | int           | klucz główny tabeli oraz klucz obcy do tabeli samochody    |
+| id_wyposazenia | int           | klucz główny tabeli oraz klucz obcy do tabeli wyposarzenie |
+
 
 # Nazwa tabeli: Wyposazenie
 - Opis: (opis tabeli, komentarz)
@@ -185,6 +193,40 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 |----------------|---------------|------------------------------|
 | id_wyposazenia | int           | klucz główny tabeli          |
 | wyposazenie    | nvarchar(100) | wyposażenie dostpene w aucie |
+
+# Nazwa tabeli: Modele
+- Opis: (opis tabeli, komentarz)
+
+| Nazwa atrybutu | Typ          | Opis/Uwagi             |
+|----------------|--------------|------------------------|
+| id_modelu      | int          | klucz główny tabeli    |
+| nazwa_modelu   | nvarchar(50) | nazwa modelu auta      |
+| id_marki       | int          | klucz obcy ??????????? |
+
+# Nazwa tabeli: Marki
+- Opis: (opis tabeli, komentarz)
+
+| Nazwa atrybutu | Typ          | Opis/Uwagi             |
+|----------------|--------------|------------------------|
+| id_marki       | int          | klucz główny tabeli    |
+| nazwa_marki    | nvarchar(50) | nazwa marki auta       |
+
+# Nazwa tabeli: Faktury
+- Opis: (opis tabeli, komentarz)
+
+| Nazwa atrybutu   | Typ           | Opis/Uwagi                  |
+|------------------|---------------|-----------------------------|
+| id_faktury       | int           | klucz główny tabeli         |
+| numer_faktury    | nvarchar(20)  | numer wystawionej fakrury   |
+| data_wystawienia | date          | data wystawienia faktury    |
+| data_płatności   | date          | data płatności              |
+| id_klienta       | int           | klcuz obcy ??????????       |
+| podatek_vat      | decimal(3,2)  | podatek vat od kwoty brutto |
+| kwota_netto      | decimal(10,2) | kwota netto                 |
+| kwota_brutto     | decimal(10,2) | kwota brutto                |
+| status_faktrury  | nvarchar(15)  | status opłacenia faktury    |
+| id_wypozyczenia  | int           | klucz obcy  ?????????       |
+
 
 
 # 4.	Implementacja
