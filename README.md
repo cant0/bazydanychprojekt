@@ -53,9 +53,8 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 - Dodawanie i usuwanie klientów z bazy danych.
 - Wypożyczanie samochodu na określony okres.
 - Generowanie faktur na podstawie danych o wypożyczeniach.
-- Zarządzanie stanem floty (dostępność, serwisy, naprawy).
+- Zarządzanie stanem floty (dostępność).
 - Wyszukiwanie danych po różnych kryteriach (np. imię i nazwisko klienta, numer rejestracyjny samochodu, data wypożyczenia)
-- Rejestrowanie przeglądów i napraw samochodów
 - Historia wypożyczeń dla każdego klienta
 
 # 3.	Projekt bazy danych
