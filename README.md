@@ -58,11 +58,6 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 - Rejestrowanie przeglądów i napraw samochodów
 - Historia wypożyczeń dla każdego klienta
 
-### Wymagania niefunkcjonalne:
-- Wydajność: System powinien obsługiwać duże ilości danych.
-- Skalowalność: Baza danych powinna być skalowalna i łatwa do rozbudowy o nowe funkcje i moduły w przyszłości.
-- Struktura bazy danych powinna być logiczna i łatwa do zrozumienia dla użytkowników.
-
 # 3.	Projekt bazy danych
 
 ## Schemat bazy danych
