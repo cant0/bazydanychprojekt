@@ -64,19 +64,22 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 # Nazwa tabeli: Klienci
 - Opis: (Tabela przedstawiająca wszystkich klientow wyporzyczalni, komentarz)
 
-| Nazwa atrybutu | Typ           | Opis/Uwagi               |
-|----------------|---------------|--------------------------|
-| id_klienta     | int           | klucz główny tabeli      |
-| imie           | nvarchar(50)  | imie klienta             |
-| nazwisko       | nvarchar(100) | nazwisko klienta         |
-| data_urodzenia | date          | data urodzenia klienta   |
-| adres          | nvarchar(255) | adres klienta            |
-| miasto         | nvarchar(50)  | miasto klienta           |
-| kod_pocztowy   | nvarchar(10)  | kod pocztowy klienta     |
-| kraj           | nvarchar(50)  | kraj pochodzenia klienta |
-| numer_telefonu | nvarchar(20)  | numer telefonu klienta   |
-| email          | nvarchar(100) | email klienta            |
-| pesel          | nvarchar(11)  | pesel klienta            |
+| Nazwa atrybutu | Typ           | Opis/Uwagi                  |
+|----------------|---------------|-----------------------------|
+| id_klienta     | int           | klucz główny tabeli         |
+| imie           | nvarchar(50)  | imie klienta                |
+| nazwisko       | nvarchar(100) | nazwisko klienta            |
+| data_urodzenia | date          | data urodzenia klienta      |
+| adres          | nvarchar(255) | adres klienta               |
+| miasto         | nvarchar(50)  | miasto klienta              |
+| kod_pocztowy   | nvarchar(10)  | kod pocztowy klienta        |
+| kraj           | nvarchar(50)  | kraj pochodzenia klienta    |
+| numer_telefonu | nvarchar(20)  | numer telefonu klienta      |
+| email          | nvarchar(100) | email klienta               |
+| pesel          | nvarchar(11)  | pesel klienta               |
+| rabat          | decimal(3,2)  | rabat przypisany do klienta |
+| nr_prawa_jazdy | nvarchar(50)  | numer prawa jazdy klienta   |
+
 
 # Nazwa tabeli: Miejsca
 - Opis: (opis tabeli, komentarz)
@@ -91,13 +94,6 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 | rodzaj           | nvarchar(20) | ??????????????????                          |
 | godziny_otwarcia | int          | godziny otwarcia wypożyczalniy              |
 
-# Nazwa tabeli: Status_platnosci
-- Opis: (opis tabeli, komentarz)
-
-| Nazwa atrybutu | Typ          | Opis/Uwagi          |
-|----------------|--------------|---------------------|
-| id_status      | int          | klucz główny tabeli |
-| nazwa_statusu  | nvarchar(20) | status płatności    |
 
 # Nazwa tabeli: Platnosci
 - Opis: (opis tabeli, komentarz)
@@ -109,7 +105,6 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 | typ_platnosci        | nvarchar(20) | RODZAJ PLATNOSCI???????????             |
 | data_platnosci       | date         | data zapłacenia za wypożyczony samochód |
 | kwota                | nvarchar(15) | kwota za wypożyczenie samochodu         |
-| id_statusu_platnosci | int          | klucz obcy ?????????????????            |
 
 # Nazwa tabeli: Pracownicy
 - Opis: (opis tabeli, komentarz)
@@ -210,7 +205,6 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 | numer_faktury    | nvarchar(20)  | numer wystawionej fakrury   |
 | data_wystawienia | date          | data wystawienia faktury    |
 | data_płatności   | date          | data płatności              |
-| id_klienta       | int           | klcuz obcy ??????????       |
 | podatek_vat      | decimal(3,2)  | podatek vat od kwoty brutto |
 | kwota_netto      | decimal(10,2) | kwota netto                 |
 | kwota_brutto     | decimal(10,2) | kwota brutto                |
