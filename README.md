@@ -133,7 +133,7 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 | data_wypozyczenia       | data          | data wypozyczenia samochodu       |
 | data_zwrotu_planowana   | date          | planowana data zwrotu samochodu   |
 | data_zwrotu_rzeczywsita | data          | rzeczywista data zwrotu samochodu |
-| cena_calkowita          | decimal(10,2) | cana całkowita wypożyczenia       |
+| cena_dobowa             | decimal(10,2) | cana całkowita wypożyczenia       |
 | oplata_dodatkowa        | decimal(10,2) | opłaty dodatkowe                  |
 | miejsce_odbioru         | int           | klucz obcy ???????????            |
 | miejsce_zwrotu          | int           | klucz obcy ???????????            |
