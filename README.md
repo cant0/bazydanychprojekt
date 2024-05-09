@@ -27,25 +27,21 @@
 Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, który umożliwi zarządzanie procesem wypożyczania. System ten będzie stanowił miejsce, w którym przechowywane będą wszystkie informacje związane z flotą samochodową, klientami oraz pracownikami. 
 ### Opis systemu
 
-- Flota samochodowa: Baza danych będzie zawierała informacje o dostępnych samochodach do wypożyczenia, takie jak marka, model, rok produkcji, numer rejestracyjny, klasa samochodu (np. kompaktowy, SUV, luksusowy), dostępność, przebieg, data ostatniego serwisu itp.
+- Flota samochodowa: Baza danych będzie zawierała informacje o dostępnych samochodach do wypożyczenia, takie jak marka, model, rok produkcji, numer rejestracyjny, klasa samochodu, dostępność, przebieg, sprawność samochodu.
     
-- Klienci: System będzie śledził dane klientów, w tym ich imiona, nazwiska, adresy, numery telefonów, adresy e-mail, historię wypożyczeń, rabaty, preferencje (np. preferowany typ samochodu), a także informacje o ewentualnych zaległościach finansowych.
+- Klienci: System będzie śledził dane klientów, w tym ich imiona, nazwiska, adresy, numery telefonów, adresy e-mail, historię wypożyczeń, rabaty (np. preferowany typ samochodu), a także informacje o ewentualnych zaległościach finansowych.
 
-- Pracownicy: Baza danych będzie przechowywała dane o pracownikach wypożyczalni, takie jak imiona, nazwiska, stanowiska, numery identyfikacyjne, daty zatrudnienia, uprawnienia (np. do wystawiania umów najmu), a także informacje o wynagrodzeniach.
+- Pracownicy: Baza danych będzie przechowywała dane o pracownikach wypożyczalni, takie jak imiona, nazwiska, stanowiska, numery identyfikacyjne, daty zatrudnienia, uprawnienia (np. do wystawiania umów najmu).
 
-- Klient może zarezerwować samochód online, przez telefon lub osobiście w wypożyczalni.
+- Klient może zarezerwować samochód osobiście w wypożyczalni.
 
-- Klient może dokonać rezerwacji, podając swoje dane osobowe (imię i nazwisko, adres, numer telefonu, numer prawa jazdy) oraz dane karty kredytowej.
+- Klient może dokonać rezerwacji, podając swoje dane osobowe (imię i nazwisko, pesel, adres, numer telefonu, numer prawa jazdy).
 
 - W dniu odbioru klient zgłasza się do wypożyczalni z dokumentem tożsamości i prawem jazdy.
 
-- Klient podpisuje umowę najmu i wpłaca depozyt.
-
 - Klient może przedłużyć okres wypożyczenia, jeśli samochód jest dostępny i po uzgodnieniu nowych warunków z wypożyczalnią.
 
-- W dniu zwrotu klient zgłasza się do wypożyczalni z wypożyczonym samochodem
-
-- Po podpisaniu protokołu zdawczo-odbiorczego pracownik wypożyczalni zwraca klientowi depozyt (po odliczeniu ewentualnych kosztów).
+- W dniu zwrotu klient zgłasza się do wypożyczalni z wypożyczonym samochodem.
 
 
 # 2.	Wymagania i funkcje systemu
@@ -68,19 +64,22 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 # Nazwa tabeli: Klienci
 - Opis: (Tabela przedstawiająca wszystkich klientow wyporzyczalni, komentarz)
 
-| Nazwa atrybutu | Typ           | Opis/Uwagi               |
-|----------------|---------------|--------------------------|
-| id_klienta     | int           | klucz główny tabeli      |
-| imie           | nvarchar(50)  | imie klienta             |
-| nazwisko       | nvarchar(100) | nazwisko klienta         |
-| data_urodzenia | date          | data urodzenia klienta   |
-| adres          | nvarchar(255) | adres klienta            |
-| miasto         | nvarchar(50)  | miasto klienta           |
-| kod_pocztowy   | nvarchar(10)  | kod pocztowy klienta     |
-| kraj           | nvarchar(50)  | kraj pochodzenia klienta |
-| numer_telefonu | nvarchar(20)  | numer telefonu klienta   |
-| email          | nvarchar(100) | email klienta            |
-| pesel          | nvarchar(11)  | pesel klienta            |
+| Nazwa atrybutu | Typ           | Opis/Uwagi                  |
+|----------------|---------------|-----------------------------|
+| id_klienta     | int           | klucz główny tabeli         |
+| imie           | nvarchar(50)  | imie klienta                |
+| nazwisko       | nvarchar(100) | nazwisko klienta            |
+| data_urodzenia | date          | data urodzenia klienta      |
+| adres          | nvarchar(255) | adres klienta               |
+| miasto         | nvarchar(50)  | miasto klienta              |
+| kod_pocztowy   | nvarchar(10)  | kod pocztowy klienta        |
+| kraj           | nvarchar(50)  | kraj pochodzenia klienta    |
+| numer_telefonu | nvarchar(20)  | numer telefonu klienta      |
+| email          | nvarchar(100) | email klienta               |
+| pesel          | nvarchar(11)  | pesel klienta               |
+| rabat          | decimal(3,2)  | rabat przypisany do klienta |
+| nr_prawa_jazdy | nvarchar(50)  | numer prawa jazdy klienta   |
+
 
 # Nazwa tabeli: Miejsca
 - Opis: (opis tabeli, komentarz)
@@ -95,13 +94,6 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 | rodzaj           | nvarchar(20) | ??????????????????                          |
 | godziny_otwarcia | int          | godziny otwarcia wypożyczalniy              |
 
-# Nazwa tabeli: Status_platnosci
-- Opis: (opis tabeli, komentarz)
-
-| Nazwa atrybutu | Typ          | Opis/Uwagi          |
-|----------------|--------------|---------------------|
-| id_status      | int          | klucz główny tabeli |
-| nazwa_statusu  | nvarchar(20) | status płatności    |
 
 # Nazwa tabeli: Platnosci
 - Opis: (opis tabeli, komentarz)
@@ -113,7 +105,6 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 | typ_platnosci        | nvarchar(20) | RODZAJ PLATNOSCI???????????             |
 | data_platnosci       | date         | data zapłacenia za wypożyczony samochód |
 | kwota                | nvarchar(15) | kwota za wypożyczenie samochodu         |
-| id_statusu_platnosci | int          | klucz obcy ?????????????????            |
 
 # Nazwa tabeli: Pracownicy
 - Opis: (opis tabeli, komentarz)
@@ -142,7 +133,7 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 | data_wypozyczenia       | data          | data wypozyczenia samochodu       |
 | data_zwrotu_planowana   | date          | planowana data zwrotu samochodu   |
 | data_zwrotu_rzeczywsita | data          | rzeczywista data zwrotu samochodu |
-| cena_calkowita          | decimal(10,2) | cana całkowita wypożyczenia       |
+| cena_dobowa             | decimal(10,2) | cana całkowita wypożyczenia       |
 | oplata_dodatkowa        | decimal(10,2) | opłaty dodatkowe                  |
 | miejsce_odbioru         | int           | klucz obcy ???????????            |
 | miejsce_zwrotu          | int           | klucz obcy ???????????            |
@@ -214,7 +205,6 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 | numer_faktury    | nvarchar(20)  | numer wystawionej fakrury   |
 | data_wystawienia | date          | data wystawienia faktury    |
 | data_płatności   | date          | data płatności              |
-| id_klienta       | int           | klcuz obcy ??????????       |
 | podatek_vat      | decimal(3,2)  | podatek vat od kwoty brutto |
 | kwota_netto      | decimal(10,2) | kwota netto                 |
 | kwota_brutto     | decimal(10,2) | kwota brutto                |
