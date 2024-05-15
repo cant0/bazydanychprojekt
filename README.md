@@ -1,4 +1,4 @@
-# bazydanychprojekt
+# Projekt Bazy Danych
  
 
 <!-- <style>
@@ -29,9 +29,9 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 
 - Flota samochodowa: Baza danych będzie zawierała informacje o dostępnych samochodach do wypożyczenia, takie jak marka, model, rok produkcji, numer rejestracyjny, klasa samochodu, dostępność, przebieg, sprawność samochodu.
     
-- Klienci: System będzie śledził dane klientów, w tym ich imiona, nazwiska, adresy, numery telefonów, adresy e-mail, historię wypożyczeń, rabaty (np. preferowany typ samochodu), a także informacje o ewentualnych zaległościach finansowych.
+- Klienci: System będzie śledził dane klientów, w tym ich imiona, nazwiska, adresy, numery telefonów, adresy e-mail, historię wypożyczeń, a także informacje o ewentualnych zaległościach finansowych.
 
-- Pracownicy: Baza danych będzie przechowywała dane o pracownikach wypożyczalni, takie jak imiona, nazwiska, stanowiska, numery identyfikacyjne, daty zatrudnienia, uprawnienia (np. do wystawiania umów najmu).
+- Pracownicy: Baza danych będzie przechowywała dane o pracownikach wypożyczalni, takie jak imiona, nazwiska, stanowiska, numery identyfikacyjne, numery telefonów, daty zatrudnienia, email, uprawnienia (np. do wystawiania umów najmu).
 
 - Klient może zarezerwować samochód osobiście w wypożyczalni.
 
