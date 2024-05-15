@@ -219,11 +219,125 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 
 (dla każdej tabeli należy wkleić kod DDL polecenia tworzącego tabelę)
 
+* **Kod tworzenia tabeli "Klienci"**
 ```sql
-create table tab1 (
-   a int,
-   b varchar(10)
+create table dbo.Klienci
+(
+    id_klienta     int identity
+        constraint id_klienta_pk
+            primary key,
+    imie           nvarchar(50)  not null,
+    nazwisko       nvarchar(100) not null,
+    data_urodzenia date          not null,
+    adres          nvarchar(255) not null,
+    miasto         nvarchar(50)  not null,
+    kod_pocztowy   nvarchar(10),
+    kraj           nvarchar(50),
+    numer_telefonu nvarchar(20)  not null,
+    email          nvarchar(100),
+    pesel          nvarchar(11),
+    nr_prawa_jazdy nvarchar(50)  not null,
+    rabat          decimal(3, 2)
 )
+go
+```
+* **Kod tworzenia tabeli "Pracownicy"**
+```sql
+create table dbo.Pracownicy
+(
+    id_pracownika     int identity
+        primary key,
+    imie              nvarchar(50) not null,
+    nazwisko          nvarchar(50) not null,
+    data_urodzenia    date,
+    stanowisko        nvarchar(50) not null,
+    numer_telefonu    nvarchar(20),
+    email             nvarchar(100),
+    adres             nvarchar(255),
+    data_zatrudnienia date         not null,
+    uprawnienia       nvarchar(20) not null
+)
+go
+```
+* **Kod tworzenia tabeli "Wypozyczenia"**
+```sql
+-- Kod tworzenia tabeli Wypozyczenia
+create table dbo.Wypozyczenia
+(
+    id_wypozyczenia         int identity
+        primary key,
+    id_klienta              int            not null
+        constraint Wypozyczenia_Klienci_id_klienta_fk
+            references dbo.Klienci,
+    id_samochodu            int            not null
+        constraint Wypozyczenia_Samochody_id_samochodu_fk
+            references dbo.Samochody,
+    data_wypozyczenia       date           not null,
+    data_zwrotu_planowana   date           not null,
+    data_zwrotu_rzeczywista date,
+    cena_dobowa             decimal(10, 2) not null,
+    oplata_dodatkowa        decimal(10, 2),
+    miejsce_odbioru         int            not null
+        constraint Wypozyczenia_Miejsca_id_miejsca_fk
+            references dbo.Miejsca,
+    miejsce_zwrotu          int            not null
+        constraint Wypozyczenia_Miejsca_id_miejsca_fk_2
+            references dbo.Miejsca,
+    pracownik_wypozyczajacy int
+        constraint Wypozyczenia_Pracownicy_id_pracownika_fk
+            references dbo.Pracownicy,
+    pracownik_odbierajacy   int
+        constraint Wypozyczenia_Pracownicy_id_pracownika_fk_2
+            references dbo.Pracownicy,
+    status                  nvarchar(20)   not null
+)
+go
+```
+* **Kod tworzenia tabeli "Miejsca"**
+```sql
+create table dbo.Miejsca
+(
+    id_miejsca       int identity
+        constraint id_miejsca_pk
+            primary key,
+    adres            nvarchar(30) not null,
+    miasto           nvarchar(20) not null,
+    kraj             nvarchar(20) not null,
+    kod_pocztowy     nvarchar(30) not null,
+    godziny_otwarcia int          not null
+)
+go
+```
+* **Kod tworzenia tabeli Faktury**
+```sql
+create table Faktury
+(
+    id_faktury       int identity
+        constraint id_faktury_pk
+            primary key,
+    numer_faktury    nvarchar(20)   not null,
+    data_wystawienia date           not null,
+    data_płatności   date           not null,
+    podatek_vat      decimal(3, 2)  not null,
+    kwota_netto      decimal(10, 2) not null,
+    kwota_brutto     decimal(10, 2) not null,
+    status_faktury   nvarchar(15)   not null,
+    id_wypozyczenia  int            not null
+        constraint Faktury_Wypozyczenia_id_wypozyczenia_fk
+            references dbo.Wypozyczenia
+)
+go
+```
+* **Kod tworzenia tabeli "Marki"**
+```sql
+create table Marki
+(
+    id_marki    int identity
+        constraint Marki_pk
+            primary key,
+    Nazwa_marki nvarchar(50)
+)
+go
 ```
 
 ## Widoki
