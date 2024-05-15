@@ -62,7 +62,7 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 ## Opis poszczególnych tabel
 
 # Nazwa tabeli: Klienci
-- Opis: (Tabela przedstawiająca wszystkich klientow wyporzyczalni, komentarz)
+- Opis: (Tabela "Klienci" przechowuje informacje o klientach firmy.)
 
 | Nazwa atrybutu | Typ           | Opis/Uwagi                  |
 |----------------|---------------|-----------------------------|
@@ -82,7 +82,7 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 
 
 # Nazwa tabeli: Miejsca
-- Opis: (opis tabeli, komentarz)
+- Opis: (Tabela "Miejsca" przechowuje informacje o różnych lokalizacjach wypożyczalni.)
 
 | Nazwa atrybutu   | Typ          | Opis/Uwagi                                  |
 |------------------|--------------|---------------------------------------------|
@@ -91,23 +91,22 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 | miasto           | nvarchar(20) | miasto, w którym znajduje się wypożyczalnia |
 | kraj             | nvarchar(20) | kraj, w którym znajduje się wypożyczalnia   |
 | kod_pocztowy     | nvarchar(30) | kod pocztowy wypożyczalni                   |
-| rodzaj           | nvarchar(20) | ??????????????????                          |
 | godziny_otwarcia | int          | godziny otwarcia wypożyczalniy              |
 
 
 # Nazwa tabeli: Platnosci
-- Opis: (opis tabeli, komentarz)
+- Opis: (Tabela "Płatności" przechowuje informacje o płatnościach za wypożyczenia samochodów.)
 
-| Nazwa atrybutu       | Typ          | Opis/Uwagi                              |
-|----------------------|--------------|-----------------------------------------|
-| id_platnosci         | int          | klucz główny tabeli                     |
-| id_wypozyczenia      | int          | klucz obcy ?????????????                |
-| typ_platnosci        | nvarchar(20) | RODZAJ PLATNOSCI???????????             |
-| data_platnosci       | date         | data zapłacenia za wypożyczony samochód |
-| kwota                | nvarchar(15) | kwota za wypożyczenie samochodu         |
+| Nazwa atrybutu   | Typ          | Opis/Uwagi                                 |
+|------------------|--------------|--------------------------------------------|
+| id_platnosci     | int          | klucz główny tabeli                        |
+| id_wypozyczenia  | int          | klucz obcy z tabeli "Wypozyczenia"         |
+| rodzaj_platnosci | nvarchar(20) | rodzaj płatności za wypozyczenie samochodu |
+| data_platnosci   | date         | data zapłacenia za wypożyczony samochód    |
+| kwota            | nvarchar(15) | kwota za wypożyczenie samochodu            |
 
 # Nazwa tabeli: Pracownicy
-- Opis: (opis tabeli, komentarz)
+- Opis: (Tabela "Pracownicy" przechowuje informacje o pracownikach firmy.)
 
 | Nazwa atrybutu    | Typ           | Opis/Uwagi                   |
 |-------------------|---------------|------------------------------|
@@ -123,26 +122,26 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 | uprawnienia       | nvarchar(20)  | numer telefonu pracownika    |
 
 # Nazwa tabeli: Wypozyczenia
-- Opis: (opis tabeli, komentarz)
+- Opis: (Tabela "Wypożyczenia" przechowuje informacje o wypożyczeniach samochodów.)
 
-| Nazwa atrybutu          | Typ           | Opis/Uwagi                        |
-|-------------------------|---------------|-----------------------------------|
-| id_wypozyczenia         | int           | klucz główny tabeli               |
-| id_klienta              | int           | klucz obcy ???????????            |
-| id_samochodu            | int           | klucz obcy ???????????            |
-| data_wypozyczenia       | data          | data wypozyczenia samochodu       |
-| data_zwrotu_planowana   | date          | planowana data zwrotu samochodu   |
-| data_zwrotu_rzeczywsita | data          | rzeczywista data zwrotu samochodu |
-| cena_dobowa             | decimal(10,2) | cana całkowita wypożyczenia       |
-| oplata_dodatkowa        | decimal(10,2) | opłaty dodatkowe                  |
-| miejsce_odbioru         | int           | klucz obcy ???????????            |
-| miejsce_zwrotu          | int           | klucz obcy ???????????            |
-| pracownik_wypozyczajacy | int           | klucz obcy ???????????            |
-| pracownik_odbierajacy   | int           | klucz obcy ???????????            |
-| status                  | nvarchar(20)  | status wypożyczenia               |
+| Nazwa atrybutu          | Typ           | Opis/Uwagi                                 |
+|-------------------------|---------------|--------------------------------------------|
+| id_wypozyczenia         | int           | klucz główny tabeli                        |
+| id_klienta              | int           | klucz obcy z tabeli Klienci                |
+| id_samochodu            | int           | klucz obcy z tabeli Samochody              |
+| data_wypozyczenia       | data          | data wypozyczenia samochodu                |
+| data_zwrotu_planowana   | date          | planowana data zwrotu samochodu            |
+| data_zwrotu_rzeczywsita | data          | rzeczywista data zwrotu samochodu          |
+| cena_dobowa             | decimal(10,2) | cana całkowita wypożyczenia                |
+| oplata_dodatkowa        | decimal(10,2) | opłaty dodatkowe                           |
+| miejsce_odbioru         | int           | miejsce gdzie klient odebrał samochud      |
+| miejsce_zwrotu          | int           | miejsce zwrotu samochodu                   |
+| pracownik_wypozyczajacy | int           | pracownik odbierający wypożyczony samochód |
+| pracownik_odbierajacy   | int           | pracownik odbierający wypożyczony samochód |
+| status                  | nvarchar(20)  | status wypożyczenia                        |
 
 # Nazwa tabeli: Samochody
-- Opis: (opis tabeli, komentarz)
+- Opis: (Tabela "Samochody" przechowuje informacje o samochodach dostępnych do wypożyczenia.)
 
 | Nazwa atrybutu      | Typ           | Opis/Uwagi                             |
 |---------------------|---------------|----------------------------------------|
@@ -159,11 +158,11 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 | stan_techniczny     | nvarchar(20)  | stan techniczny samochodu              |
 | dostepnosc          | nvarchar(20)  | dostępność samochodu w wypożyczalni    |
 | cena                | decimal(10,2) | dobowa cena wypożyczenia samochodu     |
-| id_modelu           | int           | klcuz obcy ???????                     |
+| id_modelu           | int           | klcuz obcy z tabeli Modele             |
 
 
 # Nazwa tabeli: Wyposazenie_w_samochodzie
-- Opis: (opis tabeli, komentarz)
+- Opis: (Tabela "Wyposażenie_w_samochodzie" tworzy relację wiele-do-wielu pomiędzy samochodami a ich wyposażeniem.)
 
 | Nazwa atrybutu | Typ           | Opis/Uwagi                                                 |
 |----------------|---------------|------------------------------------------------------------|
@@ -172,44 +171,44 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 
 
 # Nazwa tabeli: Wyposazenie
-- Opis: (opis tabeli, komentarz)
+- Opis: (Tabela "Wyposażenie" przechowuje informacje o różnych rodzajach wyposażenia dostępnych w samochodach.)
 
-| Nazwa atrybutu | Typ           | Opis/Uwagi                   |
-|----------------|---------------|------------------------------|
-| id_wyposazenia | int           | klucz główny tabeli          |
-| wyposazenie    | nvarchar(100) | wyposażenie dostpene w aucie |
+| Nazwa atrybutu | Typ           | Opis/Uwagi                         |
+|----------------|---------------|------------------------------------|
+| id_wyposazenia | int           | klucz główny tabeli                |
+| wyposazenie    | nvarchar(100) | wyposażenie dostpene w samochodzie |
 
 # Nazwa tabeli: Modele
-- Opis: (opis tabeli, komentarz)
+- Opis: (Tabela "Modele" przechowuje informacje o różnych modelach samochodów.)
 
-| Nazwa atrybutu | Typ          | Opis/Uwagi             |
-|----------------|--------------|------------------------|
-| id_modelu      | int          | klucz główny tabeli    |
-| nazwa_modelu   | nvarchar(50) | nazwa modelu auta      |
-| id_marki       | int          | klucz obcy ??????????? |
+| Nazwa atrybutu | Typ          | Opis/Uwagi                |
+|----------------|--------------|---------------------------|
+| id_modelu      | int          | klucz główny tabeli       |
+| nazwa_modelu   | nvarchar(50) | nazwa modelu samochodu    |
+| id_marki       | int          | klucz obcy z tabeli Marki |
 
 # Nazwa tabeli: Marki
-- Opis: (opis tabeli, komentarz)
+- Opis:  Tabela "Marki" przechowuje informacje o różnych markach samochodów.)
 
-| Nazwa atrybutu | Typ          | Opis/Uwagi             |
-|----------------|--------------|------------------------|
-| id_marki       | int          | klucz główny tabeli    |
-| nazwa_marki    | nvarchar(50) | nazwa marki auta       |
+| Nazwa atrybutu | Typ          | Opis/Uwagi            |
+|----------------|--------------|-----------------------|
+| id_marki       | int          | klucz główny tabeli   |
+| nazwa_marki    | nvarchar(50) | nazwa marki samochodu |
 
 # Nazwa tabeli: Faktury
-- Opis: (opis tabeli, komentarz)
+- Opis: (Tabela "Faktury" przechowuje informacje o wystawionych fakturach dla wypożyczeń samochodów.)
 
-| Nazwa atrybutu   | Typ           | Opis/Uwagi                  |
-|------------------|---------------|-----------------------------|
-| id_faktury       | int           | klucz główny tabeli         |
-| numer_faktury    | nvarchar(20)  | numer wystawionej fakrury   |
-| data_wystawienia | date          | data wystawienia faktury    |
-| data_płatności   | date          | data płatności              |
-| podatek_vat      | decimal(3,2)  | podatek vat od kwoty brutto |
-| kwota_netto      | decimal(10,2) | kwota netto                 |
-| kwota_brutto     | decimal(10,2) | kwota brutto                |
-| status_faktrury  | nvarchar(15)  | status opłacenia faktury    |
-| id_wypozyczenia  | int           | klucz obcy  ?????????       |
+| Nazwa atrybutu   | Typ           | Opis/Uwagi                       |
+|------------------|---------------|----------------------------------|
+| id_faktury       | int           | klucz główny tabeli              |
+| numer_faktury    | nvarchar(20)  | numer wystawionej fakrury        |
+| data_wystawienia | date          | data wystawienia faktury         |
+| data_płatności   | date          | data płatności                   |
+| podatek_vat      | decimal(3,2)  | podatek vat od kwoty brutto      |
+| kwota_netto      | decimal(10,2) | kwota netto                      |
+| kwota_brutto     | decimal(10,2) | kwota brutto                     |
+| status_faktrury  | nvarchar(15)  | status opłacenia faktury         |
+| id_wypozyczenia  | int           | klucz obcy z tabeli Wypozyczenia |
 
 
 
