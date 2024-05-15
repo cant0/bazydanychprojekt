@@ -261,7 +261,6 @@ go
 ```
 * **Kod tworzenia tabeli "Wypozyczenia"**
 ```sql
--- Kod tworzenia tabeli Wypozyczenia
 create table dbo.Wypozyczenia
 (
     id_wypozyczenia         int identity
@@ -310,7 +309,7 @@ go
 ```
 * **Kod tworzenia tabeli Faktury**
 ```sql
-create table Faktury
+create table dbo.Faktury
 (
     id_faktury       int identity
         constraint id_faktury_pk
@@ -330,12 +329,90 @@ go
 ```
 * **Kod tworzenia tabeli "Marki"**
 ```sql
-create table Marki
+create table dbo.Marki
 (
     id_marki    int identity
         constraint Marki_pk
             primary key,
     Nazwa_marki nvarchar(50)
+)
+go
+```
+* **Kod tworzenia tabeli "Modele"
+```sql
+create table dbo.Modele
+(
+    id_modelu    int identity
+        constraint Modele_pk
+            primary key,
+    nazwa_modelu nvarchar(50),
+    id_marki     int not null
+        constraint Modele_Marki_id_marki_samochodu_fk
+            references dbo.Marki
+)
+go
+```
+* **Kod tworzenia tabeli "Platnosci"**
+```sql
+create table dbo.Platnosci
+(
+    id_platnosci     int          not null
+        constraint id_platnosci
+            primary key,
+    id_wypozyczenia  int
+        constraint Platnosci_Wypozyczenia_id_wypozyczenia_fk
+            references dbo.Wypozyczenia,
+    rodzaj_platnosci nvarchar(20) not null,
+    data_platnosci   date,
+    kwota            nvarchar(15) not null
+)
+go
+```
+* **Kod tworzenia tabeli "Samochody"**
+```sql
+create table dbo.Samochody
+(
+    id_samochodu        int identity
+        constraint id_samochodu_pk
+            primary key,
+    rok_produkcji       int            not null,
+    kolor               nvarchar(20)   not null,
+    klasa_samochodu     nvarchar(5)    not null,
+    numer_rejestracyjnu nvarchar(20)   not null,
+    przebieg            int            not null,
+    miejsca_siedzace    int            not null,
+    skrzynia_biegow     nvarchar(3)    not null,
+    naped               nvarchar(4)    not null,
+    pojemnosc_silnika   decimal(3, 1)  not null,
+    stan_techniczny     nvarchar(20)   not null,
+    dostepnosc          nvarchar(20)   not null,
+    cena                decimal(10, 2) not null,
+    id_modelu           int            not null
+        constraint Samochody_Modele_samochodow_id_modelu_fk
+            references dbo.Modele
+)
+go
+```
+* **Kod tworzenia tabeli "Wyposazenie"**
+```sql
+create table dbo.Wyposazenie
+(
+    id_wyposazenia int identity
+        constraint id_wyposazenia_pk
+            primary key,
+    wyposazenie nvarchar(100) not null
+)
+go
+```
+* **Kod tworzenia tabeli "Wyposazenie_w_samochodzie"**
+```sql
+create table dbo.Wyposazenie_w_samochodzie
+(
+    id_samochodu   int not null
+        references dbo.Samochody,
+    id_wyposazenia int not null
+        references dbo.Wyposazenie,
+    primary key (id_samochodu, id_wyposazenia)
 )
 go
 ```
