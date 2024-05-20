@@ -6,7 +6,7 @@ ADD CONSTRAINT CK_Data_Zwrotu_Rzeczywista CHECK (data_zwrotu_rzeczywista IS NULL
 
 -- ALTER TABLE dbo.Wypozyczenia
 -- ADD CONSTRAINT CK_Data_Zwrotu_Rzeczywista_Do_Pracownika CHECK (data_zwrotu_rzeczywista IS NULL OR data_zwrotu_rzeczywista >= Pracownicy.data_zatrudnienia);
--- TO MAJA BYC TRIGERRY
+-- TO MAJA BYC TRIGERRY, DODAC TRIGERRY SPRAWDZAJACY WIEK KLIENTA
 -- ALTER TABLE dbo.Wypozyczenia
 -- ADD CONSTRAINT CK_Data_Wypozyczenia_Do_Pracownika CHECK (data_wypozyczenia >= Pracownicy.data_zatrudnienia);
 
