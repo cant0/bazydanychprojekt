@@ -404,7 +404,7 @@ create table Samochody
             check ([stan_techniczny] = 'Niesprawny' OR [stan_techniczny] = 'Sprawny'),
     dostepnosc          nvarchar(20)  not null
         constraint check_dostępność
-            check ([dostepnosc] = 'niedostepny' OR [dostepnosc] = 'dostepny'),
+            check ([dostepnosc] = 'Niedostepny' OR [dostepnosc] = 'Dostepny'),
     id_modelu           int           not null
         constraint Samochody_Modele_samochodow_id_modelu_fk
             references Modele,
