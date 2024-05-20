@@ -4,6 +4,13 @@ ADD CONSTRAINT CK_Cena_Positive CHECK (cena >= 0);
 ALTER TABLE dbo.Wypozyczenia
 ADD CONSTRAINT CK_Data_Zwrotu_Rzeczywista CHECK (data_zwrotu_rzeczywista IS NULL OR data_zwrotu_rzeczywista >= data_wypozyczenia);
 
+-- ALTER TABLE dbo.Wypozyczenia
+-- ADD CONSTRAINT CK_Data_Zwrotu_Rzeczywista_Do_Pracownika CHECK (data_zwrotu_rzeczywista IS NULL OR data_zwrotu_rzeczywista >= Pracownicy.data_zatrudnienia);
+-- TO MAJA BYC TRIGERRY
+-- ALTER TABLE dbo.Wypozyczenia
+-- ADD CONSTRAINT CK_Data_Wypozyczenia_Do_Pracownika CHECK (data_wypozyczenia >= Pracownicy.data_zatrudnienia);
+
+
 ALTER TABLE dbo.Wypozyczenia
 ADD CONSTRAINT CK_Cena_Dobowa CHECK (cena_dobowa > 0);
 ALTER TABLE dbo.Wypozyczenia
@@ -32,6 +39,8 @@ ADD CONSTRAINT CK_naped CHECK (naped IN ('FWD', 'RWD', 'AWD'));
 
 ALTER TABLE dbo.Samochody
 ADD CONSTRAINT CK_stan_techniczny CHECK (stan_techniczny IN ('Sprawny', 'Niesprawny'));
+
+
 
 
 
