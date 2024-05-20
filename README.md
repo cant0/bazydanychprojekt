@@ -220,7 +220,7 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 
 * **Kod tworzenia tabeli "Klienci"**
 ```sql
-create table dbo.Klienci
+create table Klienci
 (
     id_klienta     int identity
         constraint id_klienta_pk
@@ -230,11 +230,13 @@ create table dbo.Klienci
     data_urodzenia date          not null,
     adres          nvarchar(255) not null,
     miasto         nvarchar(50)  not null,
-    kod_pocztowy   nvarchar(10),
+    kod_pocztowy   nvarchar(20),
     kraj           nvarchar(50),
     numer_telefonu nvarchar(20)  not null,
     email          nvarchar(100),
-    pesel          nvarchar(11),
+    pesel          nvarchar(11)
+        constraint CK_Pesel
+            check ([pesel] IS NULL OR [pesel] like '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
     nr_prawa_jazdy nvarchar(50)  not null,
     rabat          decimal(3, 2)
 )
@@ -242,7 +244,7 @@ go
 ```
 * **Kod tworzenia tabeli "Pracownicy"**
 ```sql
-create table dbo.Pracownicy
+create table Pracownicy
 (
     id_pracownika     int identity
         primary key,
@@ -254,46 +256,55 @@ create table dbo.Pracownicy
     email             nvarchar(100),
     adres             nvarchar(255),
     data_zatrudnienia date         not null,
-    uprawnienia       nvarchar(20) not null
+    miasto            nvarchar(50),
+    kod_pocztowy      nvarchar(20),
+    kraj              nvarchar(20)
 )
 go
 ```
 * **Kod tworzenia tabeli "Wypozyczenia"**
 ```sql
-create table dbo.Wypozyczenia
+create table Wypozyczenia
 (
     id_wypozyczenia         int identity
         primary key,
     id_klienta              int            not null
         constraint Wypozyczenia_Klienci_id_klienta_fk
-            references dbo.Klienci,
+            references Klienci,
     id_samochodu            int            not null
         constraint Wypozyczenia_Samochody_id_samochodu_fk
-            references dbo.Samochody,
+            references Samochody,
     data_wypozyczenia       date           not null,
     data_zwrotu_planowana   date           not null,
     data_zwrotu_rzeczywista date,
-    cena_dobowa             decimal(10, 2) not null,
-    oplata_dodatkowa        decimal(10, 2),
+    cena_dobowa             decimal(10, 2) not null
+        constraint CK_Cena_Dobowa
+            check ([cena_dobowa] >= 0),
+    oplata_dodatkowa        decimal(10, 2)
+        constraint CK_Oplata_Dodatkowa
+            check ([oplata_dodatkowa] IS NULL OR [oplata_dodatkowa] > 0),
     miejsce_odbioru         int            not null
         constraint Wypozyczenia_Miejsca_id_miejsca_fk
-            references dbo.Miejsca,
+            references Miejsca,
     miejsce_zwrotu          int            not null
         constraint Wypozyczenia_Miejsca_id_miejsca_fk_2
-            references dbo.Miejsca,
-    pracownik_wypozyczajacy int
+            references Miejsca,
+    pracownik_wypozyczajacy int            not null
         constraint Wypozyczenia_Pracownicy_id_pracownika_fk
-            references dbo.Pracownicy,
-    pracownik_odbierajacy   int
+            references Pracownicy,
+    pracownik_odbierajacy   int            not null
         constraint Wypozyczenia_Pracownicy_id_pracownika_fk_2
-            references dbo.Pracownicy,
-    status                  nvarchar(20)   not null
+            references Pracownicy,
+    constraint CK_Data_Zwrotu_Planowana
+        check ([data_zwrotu_planowana] >= [data_wypozyczenia]),
+    constraint CK_Data_Zwrotu_Rzeczywista
+        check ([data_zwrotu_rzeczywista] IS NULL OR [data_zwrotu_rzeczywista] >= [data_wypozyczenia])
 )
 go
 ```
 * **Kod tworzenia tabeli "Miejsca"**
 ```sql
-create table dbo.Miejsca
+create table Miejsca
 (
     id_miejsca       int identity
         constraint id_miejsca_pk
@@ -302,33 +313,35 @@ create table dbo.Miejsca
     miasto           nvarchar(20) not null,
     kraj             nvarchar(20) not null,
     kod_pocztowy     nvarchar(30) not null,
-    godziny_otwarcia int          not null
+    godziny_otwarcia nvarchar(30) not null
 )
 go
 ```
 * **Kod tworzenia tabeli Faktury**
 ```sql
-create table dbo.Faktury
+create table Faktury
 (
     id_faktury       int identity
         constraint id_faktury_pk
             primary key,
-    numer_faktury    nvarchar(20)   not null,
-    data_wystawienia date           not null,
-    data_płatności   date           not null,
-    podatek_vat      decimal(3, 2)  not null,
-    kwota_netto      decimal(10, 2) not null,
-    kwota_brutto     decimal(10, 2) not null,
-    status_faktury   nvarchar(15)   not null,
-    id_wypozyczenia  int            not null
+    numer_faktury    nvarchar(20)  not null,
+    data_wystawienia date          not null,
+    stawka_vat       decimal(3, 2) not null
+        constraint CK_stawka_vat
+            check ([stawka_vat] >= 0),
+    id_wypozyczenia  int           not null
         constraint Faktury_Wypozyczenia_id_wypozyczenia_fk
-            references dbo.Wypozyczenia
+            references Wypozyczenia
 )
+go
+
+create unique index IX_Faktury
+    on Faktury (id_wypozyczenia)
 go
 ```
 * **Kod tworzenia tabeli "Marki"**
 ```sql
-create table dbo.Marki
+create table Marki
 (
     id_marki    int identity
         constraint Marki_pk
@@ -339,83 +352,105 @@ go
 ```
 * **Kod tworzenia tabeli "Modele"**
 ```sql
-create table dbo.Modele
+create table Modele
 (
     id_modelu    int identity
         constraint Modele_pk
             primary key,
     nazwa_modelu nvarchar(50),
     id_marki     int not null
-        constraint Modele_Marki_id_marki_samochodu_fk
-            references dbo.Marki
+        constraint Modele_Marki_id_marki_fk
+            references Marki
 )
 go
 ```
 * **Kod tworzenia tabeli "Platnosci"**
 ```sql
-create table dbo.Platnosci
+create table Modele
 (
-    id_platnosci     int          not null
-        constraint id_platnosci
+    id_modelu    int identity
+        constraint Modele_pk
             primary key,
-    id_wypozyczenia  int
-        constraint Platnosci_Wypozyczenia_id_wypozyczenia_fk
-            references dbo.Wypozyczenia,
-    rodzaj_platnosci nvarchar(20) not null,
-    data_platnosci   date,
-    kwota            nvarchar(15) not null
+    nazwa_modelu nvarchar(50),
+    id_marki     int not null
+        constraint Modele_Marki_id_marki_fk
+            references Marki
 )
 go
 ```
 * **Kod tworzenia tabeli "Samochody"**
 ```sql
-create table dbo.Samochody
+create table Samochody
 (
     id_samochodu        int identity
         constraint id_samochodu_pk
             primary key,
-    rok_produkcji       int            not null,
-    kolor               nvarchar(20)   not null,
-    klasa_samochodu     nvarchar(5)    not null,
-    numer_rejestracyjnu nvarchar(20)   not null,
-    przebieg            int            not null,
-    miejsca_siedzace    int            not null,
-    skrzynia_biegow     nvarchar(3)    not null,
-    naped               nvarchar(4)    not null,
-    pojemnosc_silnika   decimal(3, 1)  not null,
-    stan_techniczny     nvarchar(20)   not null,
-    dostepnosc          nvarchar(20)   not null,
-    cena                decimal(10, 2) not null,
-    id_modelu           int            not null
+    rok_produkcji       int           not null,
+    kolor               nvarchar(20)  not null,
+    numer_rejestracyjnu nvarchar(20)  not null,
+    przebieg            int           not null
+        constraint CK_Przebieg
+            check ([przebieg] >= 0),
+    miejsca_siedzace    int           not null
+        constraint CK_Miejsca_Siedzace
+            check ([miejsca_siedzace] > 0),
+    skrzynia_biegow     nvarchar(3)   not null,
+    naped               nvarchar(4)   not null
+        constraint CK_naped
+            check ([naped] = 'AWD' OR [naped] = 'RWD' OR [naped] = 'FWD'),
+    pojemnosc_silnika   decimal(3, 1) not null,
+    stan_techniczny     nvarchar(20)  not null
+        constraint CK_stan_techniczny
+            check ([stan_techniczny] = 'Niesprawny' OR [stan_techniczny] = 'Sprawny'),
+    dostepnosc          nvarchar(20)  not null
+        constraint check_dostępność
+            check ([dostepnosc] = 'niedostepny' OR [dostepnosc] = 'dostepny'),
+    id_modelu           int           not null
         constraint Samochody_Modele_samochodow_id_modelu_fk
-            references dbo.Modele
+            references Modele,
+    id_klasy            int
+        constraint Samochody_Klasy_samochodow_id_klasy_fk
+            references Klasy_samochodow
 )
 go
 ```
 * **Kod tworzenia tabeli "Wyposazenie"**
 ```sql
-create table dbo.Wyposazenie
+create table Wyposazenie
 (
     id_wyposazenia int identity
         constraint id_wyposazenia_pk
             primary key,
-    wyposazenie nvarchar(100) not null
+    wyposazenie    nvarchar(100) not null
 )
 go
 ```
 * **Kod tworzenia tabeli "Wyposazenie_w_samochodzie"**
 ```sql
-create table dbo.Wyposazenie_w_samochodzie
+create table Wyposazenie_w_samochodzie
 (
     id_samochodu   int not null
-        references dbo.Samochody,
+        references Samochody,
     id_wyposazenia int not null
-        references dbo.Wyposazenie,
+        references Wyposazenie,
     primary key (id_samochodu, id_wyposazenia)
 )
 go
 ```
-
+* **Kod tworzenia tabeli "Klasy_samochodowe"**
+```sql
+create table Klasy_samochodow
+(
+    id_klasy        int identity
+        constraint Klasy_samochodow_pk
+            primary key,
+    klasa_samochodu nvarchar(15)   not null,
+    cena            decimal(10, 2) not null
+        constraint CK_Cena_Positive
+            check ([cena] > 0)
+)
+go
+```
 ## Widoki
 
 (dla każdego widoku należy wkleić kod polecenia definiującego widok wraz z komentarzem)
