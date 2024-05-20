@@ -27,6 +27,13 @@ ADD CONSTRAINT CK_stawka_vat CHECK (stawka_vat >= 0);
 ALTER TABLE dbo.Samochody
 ADD CONSTRAINT check_dostępność CHECK (dostepnosc IN ('dostepny', 'niedostepny'));
 
+ALTER TABLE dbo.Samochody
+ADD CONSTRAINT CK_naped CHECK (naped IN ('FWD', 'RWD', 'AWD'));
+
+ALTER TABLE dbo.Samochody
+ADD CONSTRAINT CK_stan_techniczny CHECK (stan_techniczny IN ('Sprawny', 'Niesprawny'));
+
+
 
 
 -- Inserting sample data into Faktury table
@@ -55,7 +62,7 @@ INSERT INTO dbo.Klienci (imie, nazwisko, data_urodzenia, adres, miasto, kod_pocz
 ('John', 'Bean', '2001-02-14', 'ul. Kingsway ', 'London', 'W8 Kensington', 'Anglia','+44 990011223', 'john.b@example.com', NULL, 'QR901234', NULL),
 ('Miro', 'Bezos', '1996-04-17', 'ul. Gazi ', 'Wolos', '382 21', 'Grecja','+30 68909546832', NULL, NULL, 'ST567890', NULL);
 
-delete from dbo.Klienci
+-- zmienic ID na gorze i dole
 
 INSERT INTO dbo.Miejsca (adres, miasto, kraj, kod_pocztowy, godziny_otwarcia) VALUES
 ('ul. Pilsudskiego 18', 'Warszawa', 'Polska', '00-601', '08:00-18:00'),
