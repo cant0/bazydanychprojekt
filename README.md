@@ -337,7 +337,7 @@ create table dbo.Marki
 )
 go
 ```
-* **Kod tworzenia tabeli "Modele"
+* **Kod tworzenia tabeli "Modele"**
 ```sql
 create table dbo.Modele
 (
