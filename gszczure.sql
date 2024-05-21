@@ -106,12 +106,12 @@ SELECT
     W.id_wypozyczenia,
     W.cena_dobowa,
     DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) AS liczba_dni,
-    ISNULL(W.oplata_dodatkowa, 0) AS oplata_dodatkowa,
+    W.oplata_dodatkowa,
     (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) AS calkowity_koszt,
     K.rabat,
     CASE
         WHEN K.rabat IS NULL THEN
-            (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0))
+            NULL
         ELSE
             ((W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) * (1 - K.rabat))
     END AS koszt_po_rabacie
