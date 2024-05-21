@@ -486,7 +486,7 @@ GO
 **2. Dosępność samochodów**
 
 Widok "V_Dostepne_Samochody" został stworzony, aby dostarczyć informacje o wszystkich dostępnych samochodach w bazie danych. 
-Widok łączy dane z trzech tabel: Samochody, Modele oraz Marki i filtruje wyniki tak, aby pokazywały tylko te samochody,
+Widok łączy dane z trzech tabel: "Samochody", "Modele" oraz "Marki" i filtruje wyniki tak, aby pokazywały tylko te samochody,
 które są aktualnie dostępne do wynajmu.
 ```sql
 CREATE VIEW V_Dostepne_Samochody AS
@@ -508,20 +508,126 @@ WHERE
     S.dostepnosc = 'Dostepny';
 GO
 ```
-**3.**
+**3. Klienci i ich liczba wypożyczeń**
+
+Widok "V_Klienci_Z_Wypozyczeniami" przedstawia klientów wraz z liczbą dokonanych przez nich wypożyczeń.
+Łączy on tabelę "Klienci" z tabelą "Wypozyczenia" za pomocą klucza id_klienta i grupuje wyniki, aby obliczyć liczbę wypożyczeń dla każdego klienta.
 ```sql
+CREATE VIEW V_Klienci_Z_Wypozyczeniami AS
+SELECT
+    K.id_klienta,
+    K.imie,
+    K.nazwisko,
+    COUNT(W.id_wypozyczenia) AS liczba_wypozyczen
+FROM
+    dbo.Klienci K
+LEFT JOIN
+    dbo.Wypozyczenia W ON K.id_klienta = W.id_klienta
+GROUP BY
+    K.id_klienta, K.imie, K.nazwisko;
 ```
-**4.**
+**4. Wypożyczenia**
+
+Ten widok zawiera szczegółowe informacje o wypożyczeniach, łącząc dane klienta z informacjami o wypożyczonym samochodzie. 
+Jest przydatny do monitorowania historii wypożyczeń, włączając w to dane o klientach oraz pojazdach, które wypożyczyli.
 ```sql
+CREATE VIEW V_Wypozyczenia_Z_Klientem_Samochodem AS
+SELECT
+    W.id_wypozyczenia,
+    K.id_klienta,
+    K.imie AS imie_klienta,
+    K.nazwisko AS nazwisko_klienta,
+    S.id_samochodu,
+    S.numer_rejestracyjny,
+    M.nazwa_modelu,
+    Ma.Nazwa_marki AS marka,
+    W.data_wypozyczenia,
+    W.data_zwrotu_planowana,
+    W.data_zwrotu_rzeczywista
+FROM
+    dbo.Wypozyczenia W
+JOIN
+    dbo.Klienci K ON W.id_klienta = K.id_klienta
+JOIN
+    dbo.Samochody S ON W.id_samochodu = S.id_samochodu
+JOIN
+    dbo.Modele M ON S.id_modelu = M.id_modelu
+JOIN
+    dbo.Marki Ma ON M.id_marki = Ma.id_marki;
+
 ```
-**5.**
+**5. Samochody i ich klasy wraz z ceną**
+
+Ten widok przedstawia szczegółowe informacje o samochodach wraz z ich klasą oraz ceną wynajmu. 
 ```sql
+CREATE VIEW V_Samochody_Z_Klasa AS
+SELECT
+    S.id_samochodu,
+    S.numer_rejestracyjny,
+    S.rok_produkcji,
+    S.kolor,
+    S.przebieg,
+    Ma.Nazwa_marki AS nazwa_marki,
+    M.nazwa_modelu,
+    K.klasa_samochodu,
+    K.cena
+FROM
+    dbo.Samochody S
+JOIN
+    dbo.Modele M ON S.id_modelu = M.id_modelu
+JOIN
+    dbo.Marki Ma ON M.id_marki = Ma.id_marki
+JOIN
+    dbo.Klasy_samochodow K ON S.id_klasy = K.id_klasy;
 ```
-**6.**
+**6. Informacje o fakturach**
+
+Ten widok zawiera informacje o fakturach wraz z kwotami brutto za wypożyczenie. 
+Łączy dane faktur z informacjami o kosztach wypożyczenia, uwzględniając rabaty i dodatkowe opłaty.
 ```sql
+CREATE VIEW V_Faktury_Z_Kwota AS
+SELECT
+    F.id_faktury,
+    W.id_wypozyczenia,
+    F.numer_faktury,
+    F.data_wystawienia,
+    F.stawka_vat,
+    W.cena_dobowa,
+    W.oplata_dodatkowa,
+    K.rabat,
+    ROUND(KosztNajmu.calkowity_koszt_brutto, 2) AS kwota
+FROM
+    dbo.Faktury F
+JOIN
+    dbo.Wypozyczenia W ON F.id_wypozyczenia = W.id_wypozyczenia
+JOIN
+    dbo.V_CalkowityKosztNajmu_Z_Rabatem KosztNajmu ON F.id_wypozyczenia = KosztNajmu.id_wypozyczenia
+JOIN
+    dbo.Klienci K ON K.id_klienta = W.id_klienta;
 ```
-**7.**
+**7. Sprawdzanie płatności**
+
+Ten widok służy do sprawdzania statusu płatności za wypożyczenia. 
+Umożliwia porównanie wpłaconych kwot z oczekiwanymi kwotami brutto za wypożyczenie i identyfikację ewentualnych różnic.
 ```sql
+CREATE VIEW V_Sprawdzenie_Platnosci AS
+SELECT
+    P.id_platnosci,
+    P.id_wypozyczenia,
+    P.kwota_wplaty,
+    KosztNajmu.calkowity_koszt_brutto AS kwota_calkowita_brutto,
+    CASE
+        WHEN P.kwota_wplaty = KosztNajmu.calkowity_koszt_brutto THEN NULL
+        ELSE P.kwota_wplaty - KosztNajmu.calkowity_koszt_brutto
+    END AS status_platnosci
+FROM
+    dbo.Platnosci P
+JOIN
+    dbo.Wypozyczenia W ON P.id_wypozyczenia = W.id_wypozyczenia
+JOIN
+    dbo.Faktury F ON W.id_wypozyczenia = F.id_wypozyczenia
+JOIN
+    dbo.V_CalkowityKosztNajmu_Z_Rabatem KosztNajmu ON P.id_wypozyczenia = KosztNajmu.id_wypozyczenia;
 ```
 ## Procedury/funkcje
 
