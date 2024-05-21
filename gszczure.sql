@@ -10,7 +10,6 @@ ADD CONSTRAINT CK_Data_Zwrotu_Rzeczywista CHECK (data_zwrotu_rzeczywista IS NULL
 -- ALTER TABLE dbo.Wypozyczenia
 -- ADD CONSTRAINT CK_Data_Wypozyczenia_Do_Pracownika CHECK (data_wypozyczenia >= Pracownicy.data_zatrudnienia);
 
-
 ALTER TABLE dbo.Wypozyczenia
 ADD CONSTRAINT CK_Cena_Dobowa CHECK (cena_dobowa > 0);
 ALTER TABLE dbo.Wypozyczenia
@@ -42,10 +41,6 @@ ADD CONSTRAINT CK_stan_techniczny CHECK (stan_techniczny IN ('Sprawny', 'Niespra
 
 
 
-
-
-
--- Inserting sample data into Faktury table
 INSERT INTO dbo.Faktury (numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia) VALUES
 ('FV1234567890', '2023-01-01', 23.00, 1),
 ('FV1234567891', '2023-01-02', 23.00, 2),
@@ -105,20 +100,132 @@ values  (1, 8, N'2024-01-01', N'2024-01-15', N'2024-01-15', 350.00, null, 2, 2, 
 -- WIDOKI zapisujemy je dodajac na poczatku "V"
 
 -- 1. Calkowity koszt najmu
-
-CREATE VIEW V_CalkowityKosztNajmu AS
+-- (juz wykonany) (ale nie wiem co z stawka vat)
+CREATE VIEW V_CalkowityKosztNajmu_Z_Rabatem AS
 SELECT
-    id_wypozyczenia,
-    cena_dobowa,
-    DATEDIFF(day, data_wypozyczenia, data_zwrotu_rzeczywista) AS liczba_dni,
-    ISNULL(oplata_dodatkowa, 0) AS oplata_dodatkowa,
-    (cena_dobowa * DATEDIFF(day, data_wypozyczenia, data_zwrotu_rzeczywista) + ISNULL(oplata_dodatkowa, 0)) AS calkowity_koszt
+    W.id_wypozyczenia,
+    W.cena_dobowa,
+    DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) AS liczba_dni,
+    ISNULL(W.oplata_dodatkowa, 0) AS oplata_dodatkowa,
+    (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) AS calkowity_koszt,
+    K.rabat,
+    CASE
+        WHEN K.rabat IS NULL THEN
+            (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0))
+        ELSE
+            ((W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) * (1 - K.rabat))
+    END AS koszt_po_rabacie
 FROM
-    dbo.Wypozyczenia
+    dbo.Wypozyczenia W
+LEFT JOIN
+    dbo.Klienci K ON W.id_klienta = K.id_klienta
 WHERE
-    data_zwrotu_rzeczywista >= data_wypozyczenia;
+    W.data_zwrotu_rzeczywista >= W.data_wypozyczenia;
 GO
+-- sprawdzenie
+SELECT * FROM V_CalkowityKosztNajmu_Z_Rabatem
 
-SELECT * FROM V_CalkowityKosztNajmu
+-- 2. Dostępne samochody
+-- (czy dodac tu zeby pokazywalo stan techniczny, choc najchetniej to bym usunal tabele stan techniczny
+-- bo jak stan techniczny jest zly to auto jest niedostepne innego przypadku nie bedzie)
+CREATE VIEW V_Dostepne_Samochody AS
+SELECT
+    S.id_samochodu,
+    S.numer_rejestracyjny,
+    S.rok_produkcji,
+    S.kolor,
+    S.przebieg,
+    M.nazwa_modelu,
+    MK.Nazwa_marki
+FROM
+    dbo.Samochody S
+JOIN
+    dbo.Modele M ON S.id_modelu = M.id_modelu
+JOIN
+    dbo.Marki MK ON M.id_marki = MK.id_marki
+WHERE
+    S.dostepnosc = 'Dostepny';
 
--- 2.
+-- 3. Klienci z wypozyczeniami
+-- (czy dodac inne kolumny?)
+CREATE VIEW V_Klienci_Z_Wypozyczeniami AS
+SELECT
+    K.id_klienta,
+    K.imie,
+    K.nazwisko,
+    COUNT(W.id_wypozyczenia) AS liczba_wypozyczen
+FROM
+    dbo.Klienci K
+LEFT JOIN
+    dbo.Wypozyczenia W ON K.id_klienta = W.id_klienta
+GROUP BY
+    K.id_klienta, K.imie, K.nazwisko;
+
+-- 4. Wypozyczenia z klientem i samochodem
+-- widok sprawdzajacy klienta z jego wypozyeczeniami
+CREATE VIEW V_Wypozyczenia_Z_Klientem_Samochodem AS
+SELECT
+    W.id_wypozyczenia,
+    K.id_klienta,
+    K.imie AS imie_klienta,
+    K.nazwisko AS nazwisko_klienta,
+    S.id_samochodu,
+    S.numer_rejestracyjny,
+    M.nazwa_modelu,
+    Ma.Nazwa_marki AS marka,
+    W.data_wypozyczenia,
+    W.data_zwrotu_planowana,
+    W.data_zwrotu_rzeczywista
+FROM
+    dbo.Wypozyczenia W
+JOIN
+    dbo.Klienci K ON W.id_klienta = K.id_klienta
+JOIN
+    dbo.Samochody S ON W.id_samochodu = S.id_samochodu
+JOIN
+    dbo.Modele M ON S.id_modelu = M.id_modelu
+JOIN
+    dbo.Marki Ma ON M.id_marki = Ma.id_marki;
+
+-- 5. Widok wyswietlajacy samochod i jego klase
+-- (nie wiem czy nie dodac jeszcze ceny za klase do tego widoku)
+CREATE VIEW V_Samochody_Z_Klasa AS
+SELECT
+    S.id_samochodu,
+    S.numer_rejestracyjny,
+    S.rok_produkcji,
+    S.kolor,
+    S.przebieg,
+    Ma.Nazwa_marki AS nazwa_marki,
+    M.nazwa_modelu,
+    K.klasa_samochodu
+FROM
+    dbo.Samochody S
+JOIN
+    dbo.Modele M ON S.id_modelu = M.id_modelu
+JOIN
+    dbo.Marki Ma ON M.id_marki = Ma.id_marki
+JOIN
+    dbo.Klasy_samochodow K ON S.id_klasy = K.id_klasy;
+
+--6. Widok Faktrury z calkowita kwota na niej
+-- widok ktory odnosi sie do widoku za caly ksozt najmu i przykleja go do tego widoku
+-- (dalej nie wiem co z stawka vat)
+CREATE VIEW V_Faktury_Z_Kwota_Calkowita AS
+SELECT
+    F.id_faktury,
+    F.numer_faktury,
+    F.data_wystawienia,
+    F.stawka_vat,
+    W.cena_dobowa,
+    W.oplata_dodatkowa,
+    KosztNajmu.calkowity_koszt AS calkowita_kwota
+FROM
+    dbo.Faktury F
+JOIN
+    dbo.Wypozyczenia W ON F.id_wypozyczenia = W.id_wypozyczenia
+JOIN
+    dbo.V_CalkowityKosztNajmu_Z_Rabatem KosztNajmu ON F.id_wypozyczenia = KosztNajmu.id_wypozyczenia;
+
+
+
