@@ -483,8 +483,30 @@ WHERE
     W.data_zwrotu_rzeczywista >= W.data_wypozyczenia;
 GO
 ```
-**2.**
+**2. Dosępność samochodów**
+
+Widok "V_Dostepne_Samochody" został stworzony, aby dostarczyć informacje o wszystkich dostępnych samochodach w bazie danych. 
+Widok łączy dane z trzech tabel: Samochody, Modele oraz Marki i filtruje wyniki tak, aby pokazywały tylko te samochody,
+które są aktualnie dostępne do wynajmu.
 ```sql
+CREATE VIEW V_Dostepne_Samochody AS
+SELECT
+    S.id_samochodu,
+    S.numer_rejestracyjny,
+    S.rok_produkcji,
+    S.kolor,
+    S.przebieg,
+    M.nazwa_modelu,
+    MK.Nazwa_marki
+FROM
+    dbo.Samochody S
+JOIN
+    dbo.Modele M ON S.id_modelu = M.id_modelu
+JOIN
+    dbo.Marki MK ON M.id_marki = MK.id_marki
+WHERE
+    S.dostepnosc = 'Dostepny';
+GO
 ```
 **3.**
 ```sql
