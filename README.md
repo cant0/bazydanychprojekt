@@ -457,24 +457,40 @@ go
 ```
 ## Widoki
 **1. Całkowity koszt najmu**
-* **Obliczenie liczby dni wypożyczenia:**
+
+**Obliczenie liczby dni wypożyczenia:**
+
+
 * Używa funkcji DATEDIFF, aby obliczyć różnicę między datą wypożyczenia (data_wypozyczenia) a rzeczywistą datą zwrotu (data_zwrotu_rzeczywista). Wynik tej operacji jest przechowywany w kolumnie liczba_dni.
-* **Obliczenie całkowitego kosztu najmu:**
+
+
+**Obliczenie całkowitego kosztu najmu:**
+
 * Pomnożenie ceny dobowej wynajmu (cena_dobowa) przez liczbę dni wypożyczenia (liczba_dni), co daje koszt za wypożyczenie samochodu na podstawie ceny za dobę.
 * Dodanie ewentualnej dodatkowej opłaty (oplata_dodatkowa) do obliczonego kosztu, jeśli istnieje.
 * Całkowity koszt najmu jest obliczany jako suma tych dwóch wartości i jest przechowywany w kolumnie calkowity_koszt.
+* Dodanie kolumny rabat, ktory jest przypisany do klienta, oraz dodanie kolumny koszt_po_rabacie ktora wylicza cene uwzgledniajac rabat. Jeśli klient nie ma rabatu to cena zostanie przepisana z kolumny calkowity_koszt.
 ```sql
-CREATE VIEW V_CalkowityKosztNajmu AS
+CREATE VIEW V_CalkowityKosztNajmu_Z_Rabatem AS
 SELECT
-    id_wypozyczenia,
-    cena_dobowa,
-    DATEDIFF(day, data_wypozyczenia, data_zwrotu_rzeczywista) AS liczba_dni,
-    ISNULL(oplata_dodatkowa, 0) AS oplata_dodatkowa,
-    (cena_dobowa * DATEDIFF(day, data_wypozyczenia, data_zwrotu_rzeczywista) + ISNULL(oplata_dodatkowa, 0)) AS calkowity_koszt
+    W.id_wypozyczenia,
+    W.cena_dobowa,
+    DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) AS liczba_dni,
+    ISNULL(W.oplata_dodatkowa, 0) AS oplata_dodatkowa,
+    (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) AS calkowity_koszt,
+    K.rabat,
+    CASE
+        WHEN K.rabat IS NULL THEN
+            (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0))
+        ELSE
+            ((W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) * (1 - K.rabat))
+    END AS koszt_po_rabacie
 FROM
-    dbo.Wypozyczenia
+    dbo.Wypozyczenia W
+LEFT JOIN
+    dbo.Klienci K ON W.id_klienta = K.id_klienta
 WHERE
-    data_zwrotu_rzeczywista >= data_wypozyczenia;
+    W.data_zwrotu_rzeczywista >= W.data_wypozyczenia;
 GO
 ```
 **2.**
