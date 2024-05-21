@@ -366,15 +366,19 @@ go
 ```
 * **Kod tworzenia tabeli "Platnosci"**
 ```sql
-create table Modele
+create table Platnosci
 (
-    id_modelu    int identity
-        constraint Modele_pk
+    id_platnosci     int identity
+        constraint Platnosci_pk
             primary key,
-    nazwa_modelu nvarchar(50),
-    id_marki     int not null
-        constraint Modele_Marki_id_marki_fk
-            references Marki
+    id_wypozyczenia  int
+        constraint Platnosci_Wypozyczenia_id_wypozyczenia_fk
+            references Wypozyczenia,
+    rodzaj_platnosci nvarchar(20) not null,
+    data_platnosci   date,
+    kwota_wplaty     nvarchar(30)
+        constraint CK_Kwota
+            check ([kwota_wplaty] IS NULL OR [kwota_wplaty] >= 0)
 )
 go
 ```
