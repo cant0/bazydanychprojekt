@@ -100,7 +100,7 @@ values  (1, 8, N'2024-01-01', N'2024-01-15', N'2024-01-15', 350.00, null, 2, 2, 
 -- WIDOKI zapisujemy je dodajac na poczatku "V"
 
 -- 1. Calkowity koszt najmu
--- (juz wykonany) (ale nie wiem co z stawka vat)
+-- (juz wykonany)
 CREATE VIEW V_CalkowityKosztNajmu_Z_Rabatem AS
 SELECT
     W.id_wypozyczenia,
@@ -108,13 +108,15 @@ SELECT
     DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) AS liczba_dni,
     W.oplata_dodatkowa,
     K.rabat,
-    (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) AS calkowity_koszt,
+    (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) AS calkowity_koszt_netto,
+    (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) * (1 + 0.23) AS calkowity_koszt_brutto,
+    -- kosz po rabacie brutto zamienic z calkowity koszt brutto
     CASE
         WHEN K.rabat IS NULL THEN
             NULL
         ELSE
-            ((W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) * (1 - K.rabat))
-    END AS koszt_po_rabacie
+            ((W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) * (1 - K.rabat)) * (1 + 0.23)
+    END AS koszt_po_rabacie_brutto
 FROM
     dbo.Wypozyczenia W
 LEFT JOIN
@@ -122,12 +124,11 @@ LEFT JOIN
 WHERE
     W.data_zwrotu_rzeczywista >= W.data_wypozyczenia;
 GO
+
 -- sprawdzenie
 SELECT * FROM V_CalkowityKosztNajmu_Z_Rabatem
 
 -- 2. Dostępne samochody
--- (czy dodac tu zeby pokazywalo stan techniczny, choc najchetniej to bym usunal tabele stan techniczny
--- bo jak stan techniczny jest zly to auto jest niedostepne innego przypadku nie bedzie)
 CREATE VIEW V_Dostepne_Samochody AS
 SELECT
     S.id_samochodu,
@@ -146,6 +147,8 @@ JOIN
 WHERE
     S.dostepnosc = 'Dostepny';
 
+select * from V_Dostepne_Samochody
+
 -- 3. Klienci z wypozyczeniami
 -- (czy dodac inne kolumny?)
 CREATE VIEW V_Klienci_Z_Wypozyczeniami AS
@@ -162,7 +165,6 @@ GROUP BY
     K.id_klienta, K.imie, K.nazwisko;
 
 -- 4. Wypozyczenia z klientem i samochodem
--- widok sprawdzajacy klienta z jego wypozyeczeniami
 CREATE VIEW V_Wypozyczenia_Z_Klientem_Samochodem AS
 SELECT
     W.id_wypozyczenia,
@@ -187,8 +189,9 @@ JOIN
 JOIN
     dbo.Marki Ma ON M.id_marki = Ma.id_marki;
 
+select * from V_Wypozyczenia_Z_Klientem_Samochodem;
+
 -- 5. Widok wyswietlajacy samochod i jego klase
--- (nie wiem czy nie dodac jeszcze ceny za klase do tego widoku)
 CREATE VIEW V_Samochody_Z_Klasa AS
 SELECT
     S.id_samochodu,
@@ -198,7 +201,8 @@ SELECT
     S.przebieg,
     Ma.Nazwa_marki AS nazwa_marki,
     M.nazwa_modelu,
-    K.klasa_samochodu
+    K.klasa_samochodu,
+    K.cena
 FROM
     dbo.Samochody S
 JOIN
@@ -208,24 +212,120 @@ JOIN
 JOIN
     dbo.Klasy_samochodow K ON S.id_klasy = K.id_klasy;
 
+select * FROM V_Samochody_Z_Klasa
+
 --6. Widok Faktrury z calkowita kwota na niej
 -- widok ktory odnosi sie do widoku za caly ksozt najmu i przykleja go do tego widoku
 -- (dalej nie wiem co z stawka vat)
-CREATE VIEW V_Faktury_Z_Kwota_Calkowita AS
+CREATE VIEW V_Faktury_Z_Kwota AS
 SELECT
     F.id_faktury,
+    W.id_wypozyczenia,
     F.numer_faktury,
     F.data_wystawienia,
     F.stawka_vat,
     W.cena_dobowa,
     W.oplata_dodatkowa,
-    KosztNajmu.calkowity_koszt AS calkowita_kwota
+    KosztNajmu.calkowity_koszt AS kwota_netto,
+    K.rabat,
+    KosztNajmu.koszt_po_rabacie AS kwota_po_rabacie_netto,
+    -- Obliczenie kwoty brutto
+    ROUND(KosztNajmu.calkowity_koszt * (1 + F.stawka_vat), 2) AS kwota_brutto,
+    ROUND(KosztNajmu.koszt_po_rabacie * (1 + F.stawka_vat), 2) AS kwota_po_rabacie_brutto
 FROM
     dbo.Faktury F
 JOIN
     dbo.Wypozyczenia W ON F.id_wypozyczenia = W.id_wypozyczenia
 JOIN
-    dbo.V_CalkowityKosztNajmu_Z_Rabatem KosztNajmu ON F.id_wypozyczenia = KosztNajmu.id_wypozyczenia;
+    dbo.V_CalkowityKosztNajmu_Z_Rabatem KosztNajmu ON F.id_wypozyczenia = KosztNajmu.id_wypozyczenia
+JOIN
+    dbo.Klienci K ON K.id_klienta = W.id_klienta;
+
+select * from V_Faktury_Z_Kwota
+-- widok do zmiany i analizy
+CREATE VIEW V_Sprawdzenie_Platnosci AS
+SELECT
+    P.id_platnosci,
+    P.id_wypozyczenia,
+    P.kwota_wplaty,
+    -- Obliczenie kwoty brutto
+    ROUND(KosztNajmu.calkowity_koszt * (1 + F.stawka_vat), 2) AS kwota_calkowita_brutto,
+    CASE
+        WHEN P.kwota_wplaty = ROUND(KosztNajmu.calkowity_koszt * (1 + F.stawka_vat), 2)
+            THEN 'Opłacone'
+        WHEN P.kwota_wplaty < ROUND(KosztNajmu.calkowity_koszt * (1 + F.stawka_vat), 2)
+            THEN 'Niedopłacone o ' + CAST(ROUND(KosztNajmu.calkowity_koszt * (1 + F.stawka_vat) - P.kwota_wplaty, 2) AS NVARCHAR(20)) + ' PLN'
+        WHEN P.kwota_wplaty > ROUND(KosztNajmu.calkowity_koszt * (1 + F.stawka_vat), 2)
+            THEN 'Nadpłacone o ' + CAST(ROUND(P.kwota_wplaty - KosztNajmu.calkowity_koszt * (1 + F.stawka_vat), 2) AS NVARCHAR(20)) + ' PLN'
+    END AS status_platnosci
+FROM
+    dbo.Platnosci P
+JOIN
+    dbo.Wypozyczenia W ON P.id_wypozyczenia = W.id_wypozyczenia
+JOIN
+    dbo.Faktury F ON W.id_wypozyczenia = F.id_wypozyczenia
+JOIN
+    dbo.V_CalkowityKosztNajmu_Z_Rabatem KosztNajmu ON P.id_wypozyczenia = KosztNajmu.id_wypozyczenia;
+
+
+-- TRIGERY
+-- 1. Sprawdzajacy czy data wypozyczenia auta jest wieksza niz data zatrudnienia pracownika
+CREATE TRIGGER CheckDataWypozyczenia
+ON dbo.Wypozyczenia
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        INNER JOIN dbo.Pracownicy p ON i.pracownik_wypozyczajacy = p.id_pracownika
+        WHERE i.data_wypozyczenia <= p.data_zatrudnienia
+    )
+    BEGIN
+        RAISERROR('Data wypożyczenia musi być większa niż data zatrudnienia pracownika wypożyczającego.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END;
+
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        INNER JOIN dbo.Pracownicy p ON i.pracownik_odbierajacy = p.id_pracownika
+        WHERE i.data_zwrotu_rzeczywista IS NOT NULL
+        AND i.data_zwrotu_rzeczywista <= p.data_zatrudnienia
+    )
+    BEGIN
+        RAISERROR('Data zwrotu rzeczywista musi być większa niż data zatrudnienia pracownika odbierającego.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END;
+END;
+GO
+
+-- -- 2. Triger sprawdzajacy wiek klienta kiedy nie am 18 lat nie mozemy dodac go do tabeli klienci
+-- CREATE TRIGGER CheckWiekKlienta
+-- ON dbo.Klienci
+-- AFTER INSERT, UPDATE
+-- AS
+-- BEGIN
+--     IF EXISTS (
+--         SELECT 1
+--         FROM inserted
+--         WHERE DATEDIFF(YEAR, data_urodzenia, GETDATE()) < 18
+--     )
+--     BEGIN
+--         RAISERROR('Klient musi mieć co najmniej 18 lat.', 16, 1);
+--         ROLLBACK TRANSACTION;
+--         RETURN;
+--     END;
+-- END;
+-- GO
 
 
 
+
+
+
+select id_samochodu, id_klasy from dbo.Samochody
+
+select id_klasy, cena from dbo.Klasy_samochodow
