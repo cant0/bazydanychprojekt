@@ -456,10 +456,28 @@ create table Klasy_samochodow
 go
 ```
 ## Widoki
-
-(dla każdego widoku należy wkleić kod polecenia definiującego widok wraz z komentarzem)
+**1. Całkowity koszt najmu**
+* **Obliczenie liczby dni wypożyczenia:**
+* Używa funkcji DATEDIFF, aby obliczyć różnicę między datą wypożyczenia (data_wypozyczenia) a rzeczywistą datą zwrotu (data_zwrotu_rzeczywista). Wynik tej operacji jest przechowywany w kolumnie liczba_dni.
+* **Obliczenie całkowitego kosztu najmu:**
+* Pomnożenie ceny dobowej wynajmu (cena_dobowa) przez liczbę dni wypożyczenia (liczba_dni), co daje koszt za wypożyczenie samochodu na podstawie ceny za dobę.
+* Dodanie ewentualnej dodatkowej opłaty (oplata_dodatkowa) do obliczonego kosztu, jeśli istnieje.
+* Całkowity koszt najmu jest obliczany jako suma tych dwóch wartości i jest przechowywany w kolumnie calkowity_koszt.
 ```sql
+CREATE VIEW V_CalkowityKosztNajmu AS
+SELECT
+    id_wypozyczenia,
+    cena_dobowa,
+    DATEDIFF(day, data_wypozyczenia, data_zwrotu_rzeczywista) AS liczba_dni,
+    ISNULL(oplata_dodatkowa, 0) AS oplata_dodatkowa,
+    (cena_dobowa * DATEDIFF(day, data_wypozyczenia, data_zwrotu_rzeczywista) + ISNULL(oplata_dodatkowa, 0)) AS calkowity_koszt
+FROM
+    dbo.Wypozyczenia
+WHERE
+    data_zwrotu_rzeczywista >= data_wypozyczenia;
+GO
 ```
+**2.**
 
 ## Procedury/funkcje
 
