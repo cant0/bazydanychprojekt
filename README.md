@@ -469,19 +469,20 @@ go
 * Pomnożenie ceny dobowej wynajmu (cena_dobowa) przez liczbę dni wypożyczenia (liczba_dni), co daje koszt za wypożyczenie samochodu na podstawie ceny za dobę.
 * Dodanie ewentualnej dodatkowej opłaty (oplata_dodatkowa) do obliczonego kosztu, jeśli istnieje.
 * Całkowity koszt najmu jest obliczany jako suma tych dwóch wartości i jest przechowywany w kolumnie calkowity_koszt.
-* Dodanie kolumny rabat, ktory jest przypisany do klienta, oraz dodanie kolumny koszt_po_rabacie ktora wylicza cene uwzgledniajac rabat. Jeśli klient nie ma rabatu to cena zostanie przepisana z kolumny calkowity_koszt.
+* Dodanie kolumny rabat, ktory jest przypisany do klienta, oraz dodanie kolumny koszt_po_rabacie ktora wylicza cene uwzgledniajac rabat.
+* Jeśli klient nie ma rabatu to w kolumnie koszt_po_rabacie bedzie NULL.
 ```sql
 CREATE VIEW V_CalkowityKosztNajmu_Z_Rabatem AS
 SELECT
     W.id_wypozyczenia,
     W.cena_dobowa,
     DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) AS liczba_dni,
-    ISNULL(W.oplata_dodatkowa, 0) AS oplata_dodatkowa,
+    W.oplata_dodatkowa,
     (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) AS calkowity_koszt,
     K.rabat,
     CASE
         WHEN K.rabat IS NULL THEN
-            (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0))
+            NULL
         ELSE
             ((W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) * (1 - K.rabat))
     END AS koszt_po_rabacie
