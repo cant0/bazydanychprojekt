@@ -4,12 +4,6 @@ ADD CONSTRAINT CK_Cena_Positive CHECK (cena >= 0);
 ALTER TABLE dbo.Wypozyczenia
 ADD CONSTRAINT CK_Data_Zwrotu_Rzeczywista CHECK (data_zwrotu_rzeczywista IS NULL OR data_zwrotu_rzeczywista >= data_wypozyczenia);
 
--- ALTER TABLE dbo.Wypozyczenia
--- ADD CONSTRAINT CK_Data_Zwrotu_Rzeczywista_Do_Pracownika CHECK (data_zwrotu_rzeczywista IS NULL OR data_zwrotu_rzeczywista >= Pracownicy.data_zatrudnienia);
--- TO MAJA BYC TRIGERRY, DODAC TRIGERRY SPRAWDZAJACY WIEK KLIENTA
--- ALTER TABLE dbo.Wypozyczenia
--- ADD CONSTRAINT CK_Data_Wypozyczenia_Do_Pracownika CHECK (data_wypozyczenia >= Pracownicy.data_zatrudnienia);
-
 ALTER TABLE dbo.Wypozyczenia
 ADD CONSTRAINT CK_Cena_Dobowa CHECK (cena_dobowa > 0);
 ALTER TABLE dbo.Wypozyczenia
@@ -149,7 +143,6 @@ WHERE
 select * from V_Dostepne_Samochody
 
 -- 3. Klienci z wypozyczeniami
--- (czy dodac inne kolumny?)
 CREATE VIEW V_Klienci_Z_Wypozyczeniami AS
 SELECT
     K.id_klienta,
@@ -162,6 +155,8 @@ LEFT JOIN
     dbo.Wypozyczenia W ON K.id_klienta = W.id_klienta
 GROUP BY
     K.id_klienta, K.imie, K.nazwisko;
+
+select * from V_Klienci_Z_Wypozyczeniami
 
 -- 4. Wypozyczenia z klientem i samochodem
 CREATE VIEW V_Wypozyczenia_Z_Klientem_Samochodem AS
@@ -215,7 +210,6 @@ select * FROM V_Samochody_Z_Klasa
 
 --6. Widok Faktrury z calkowita kwota na niej
 -- widok ktory odnosi sie do widoku za caly ksozt najmu i przykleja go do tego widoku
--- (dalej nie wiem co z stawka vat)
 CREATE VIEW V_Faktury_Z_Kwota AS
 SELECT
     F.id_faktury,
@@ -225,12 +219,8 @@ SELECT
     F.stawka_vat,
     W.cena_dobowa,
     W.oplata_dodatkowa,
-    KosztNajmu.calkowity_koszt AS kwota_netto,
     K.rabat,
-    KosztNajmu.koszt_po_rabacie AS kwota_po_rabacie_netto,
-    -- Obliczenie kwoty brutto
-    ROUND(KosztNajmu.calkowity_koszt * (1 + F.stawka_vat), 2) AS kwota_brutto,
-    ROUND(KosztNajmu.koszt_po_rabacie * (1 + F.stawka_vat), 2) AS kwota_po_rabacie_brutto
+    ROUND(KosztNajmu.calkowity_koszt_brutto, 2) AS kwota
 FROM
     dbo.Faktury F
 JOIN
@@ -268,7 +258,7 @@ select * from V_Sprawdzenie_Platnosci
 
 -- TRIGGERY
 -- 1. Sprawdzajacy czy data wypozyczenia auta jest wieksza niz data zatrudnienia pracownika
-CREATE TRIGGER CheckDataWypozyczenia
+CREATE TRIGGER SprawdzDataWypozyczenia
 ON dbo.Wypozyczenia
 AFTER INSERT, UPDATE
 AS
@@ -320,7 +310,7 @@ END;
 GO
 
 -- 3. Trigger, ktory sprawdza poprzez sprawdzenie z widoku V_SPRAWDZENIE_PLATNOSCI, czy status płatnosci jest zaplacony jesli nie to nie pozwoli nam to dodan do tabeli faktury nowej faktury
-CREATE TRIGGER PreventInvoiceInsert
+CREATE TRIGGER ZapobiegajWystawianiuFaktru
 ON dbo.Faktury
 INSTEAD OF INSERT
 AS
@@ -341,6 +331,7 @@ BEGIN
         FROM inserted;
     END
 END;
+GO
 
 
 
