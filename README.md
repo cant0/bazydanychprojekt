@@ -458,6 +458,8 @@ go
 ## Widoki
 
 (dla każdego widoku należy wkleić kod polecenia definiującego widok wraz z komentarzem)
+```sql
+```
 
 ## Procedury/funkcje
 
