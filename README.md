@@ -456,21 +456,10 @@ create table Klasy_samochodow
 go
 ```
 ## Widoki
-**1. Całkowity koszt najmu**
+**1. Całkowity koszt najmu z rabatem**
 
-**Obliczenie liczby dni wypożyczenia:**
-
-
-* Używa funkcji DATEDIFF, aby obliczyć różnicę między datą wypożyczenia (data_wypozyczenia) a rzeczywistą datą zwrotu (data_zwrotu_rzeczywista). Wynik tej operacji jest przechowywany w kolumnie liczba_dni.
-
-
-**Obliczenie całkowitego kosztu najmu:**
-
-* Pomnożenie ceny dobowej wynajmu (cena_dobowa) przez liczbę dni wypożyczenia (liczba_dni), co daje koszt za wypożyczenie samochodu na podstawie ceny za dobę.
-* Dodanie ewentualnej dodatkowej opłaty (oplata_dodatkowa) do obliczonego kosztu, jeśli istnieje.
-* Całkowity koszt najmu jest obliczany jako suma tych dwóch wartości i jest przechowywany w kolumnie calkowity_koszt.
-* Dodanie kolumny rabat, ktory jest przypisany do klienta, oraz dodanie kolumny koszt_po_rabacie ktora wylicza cene uwzgledniajac rabat.
-* Jeśli klient nie ma rabatu to w kolumnie koszt_po_rabacie bedzie NULL.
+Widok "V_CalkowityKosztNajmu_Z_Rabatem" został stworzony w celu obliczenia i zaprezentowania całkowitego kosztu wynajmu dla każdej transakcji wynajmu w bazie danych. 
+Uwzględnia on zarówno koszty netto, jak i brutto, biorąc pod uwagę ewentualne rabaty przyznawane klientom.
 ```sql
 CREATE VIEW V_CalkowityKosztNajmu_Z_Rabatem AS
 SELECT
@@ -479,13 +468,13 @@ SELECT
     DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) AS liczba_dni,
     W.oplata_dodatkowa,
     K.rabat,
-    (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) AS calkowity_koszt,
+    (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) AS calkowity_koszt_netto,
     CASE
         WHEN K.rabat IS NULL THEN
-            NULL
+            (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) * (1 + 0.23)
         ELSE
-            ((W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) * (1 - K.rabat))
-    END AS koszt_po_rabacie
+            ROUND(((W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) * (1 - K.rabat)) * (1 + 0.23),2 )
+    END AS calkowity_koszt_brutto
 FROM
     dbo.Wypozyczenia W
 LEFT JOIN
@@ -495,7 +484,23 @@ WHERE
 GO
 ```
 **2.**
-
+```sql
+```
+**3.**
+```sql
+```
+**4.**
+```sql
+```
+**5.**
+```sql
+```
+**6.**
+```sql
+```
+**7.**
+```sql
+```
 ## Procedury/funkcje
 
 (dla każdej procedury/funkcji należy wkleić kod polecenia definiującego procedurę wraz z komentarzem)
