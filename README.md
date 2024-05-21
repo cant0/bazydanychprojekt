@@ -391,7 +391,7 @@ create table Samochody
             primary key,
     rok_produkcji       int           not null,
     kolor               nvarchar(20)  not null,
-    numer_rejestracyjnu nvarchar(20)  not null,
+    numer_rejestracyjny nvarchar(20)  not null,
     przebieg            int           not null
         constraint CK_Przebieg
             check ([przebieg] >= 0),
