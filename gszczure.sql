@@ -101,3 +101,24 @@ values  (1, 8, N'2024-01-01', N'2024-01-15', N'2024-01-15', 350.00, null, 2, 2, 
         (2, 7, N'2023-11-23', N'2023-12-01', N'2023-12-04', 200.00, 300.00, 3, 3, 4, 7),
         (10, 5, N'2024-02-14', N'2024-02-19', N'2024-02-19', 150.00, null, 2, 3, 6, 6),
         (6, 1, N'2023-06-16', N'2023-06-21', N'2023-06-21', 150.00, null, 3, 3, 7, 8);
+
+-- WIDOKI zapisujemy je dodajac na poczatku "V"
+
+-- 1. Calkowity koszt najmu
+
+CREATE VIEW V_CalkowityKosztNajmu AS
+SELECT
+    id_wypozyczenia,
+    cena_dobowa,
+    DATEDIFF(day, data_wypozyczenia, data_zwrotu_rzeczywista) AS liczba_dni,
+    ISNULL(oplata_dodatkowa, 0) AS oplata_dodatkowa,
+    (cena_dobowa * DATEDIFF(day, data_wypozyczenia, data_zwrotu_rzeczywista) + ISNULL(oplata_dodatkowa, 0)) AS calkowity_koszt
+FROM
+    dbo.Wypozyczenia
+WHERE
+    data_zwrotu_rzeczywista >= data_wypozyczenia;
+GO
+
+SELECT * FROM V_CalkowityKosztNajmu
+
+-- 2.
