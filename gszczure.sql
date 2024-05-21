@@ -109,14 +109,12 @@ SELECT
     W.oplata_dodatkowa,
     K.rabat,
     (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) AS calkowity_koszt_netto,
-    (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) * (1 + 0.23) AS calkowity_koszt_brutto,
-    -- kosz po rabacie brutto zamienic z calkowity koszt brutto
     CASE
         WHEN K.rabat IS NULL THEN
-            NULL
+            (W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) * (1 + 0.23)
         ELSE
-            ((W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) * (1 - K.rabat)) * (1 + 0.23)
-    END AS koszt_po_rabacie_brutto
+            ROUND(((W.cena_dobowa * DATEDIFF(day, W.data_wypozyczenia, W.data_zwrotu_rzeczywista) + ISNULL(W.oplata_dodatkowa, 0)) * (1 - K.rabat)) * (1 + 0.23),2 )
+    END AS calkowity_koszt_brutto
 FROM
     dbo.Wypozyczenia W
 LEFT JOIN
@@ -124,6 +122,7 @@ LEFT JOIN
 WHERE
     W.data_zwrotu_rzeczywista >= W.data_wypozyczenia;
 GO
+
 
 -- sprawdzenie
 SELECT * FROM V_CalkowityKosztNajmu_Z_Rabatem
@@ -242,21 +241,17 @@ JOIN
     dbo.Klienci K ON K.id_klienta = W.id_klienta;
 
 select * from V_Faktury_Z_Kwota
--- widok do zmiany i analizy
+
+-- 7. Widok sprawdzajacy platnosc
 CREATE VIEW V_Sprawdzenie_Platnosci AS
 SELECT
     P.id_platnosci,
     P.id_wypozyczenia,
     P.kwota_wplaty,
-    -- Obliczenie kwoty brutto
-    ROUND(KosztNajmu.calkowity_koszt * (1 + F.stawka_vat), 2) AS kwota_calkowita_brutto,
+    KosztNajmu.calkowity_koszt_brutto AS kwota_calkowita_brutto,
     CASE
-        WHEN P.kwota_wplaty = ROUND(KosztNajmu.calkowity_koszt * (1 + F.stawka_vat), 2)
-            THEN 'Opłacone'
-        WHEN P.kwota_wplaty < ROUND(KosztNajmu.calkowity_koszt * (1 + F.stawka_vat), 2)
-            THEN 'Niedopłacone o ' + CAST(ROUND(KosztNajmu.calkowity_koszt * (1 + F.stawka_vat) - P.kwota_wplaty, 2) AS NVARCHAR(20)) + ' PLN'
-        WHEN P.kwota_wplaty > ROUND(KosztNajmu.calkowity_koszt * (1 + F.stawka_vat), 2)
-            THEN 'Nadpłacone o ' + CAST(ROUND(P.kwota_wplaty - KosztNajmu.calkowity_koszt * (1 + F.stawka_vat), 2) AS NVARCHAR(20)) + ' PLN'
+        WHEN P.kwota_wplaty = KosztNajmu.calkowity_koszt_brutto THEN NULL
+        ELSE P.kwota_wplaty - KosztNajmu.calkowity_koszt_brutto
     END AS status_platnosci
 FROM
     dbo.Platnosci P
@@ -268,7 +263,10 @@ JOIN
     dbo.V_CalkowityKosztNajmu_Z_Rabatem KosztNajmu ON P.id_wypozyczenia = KosztNajmu.id_wypozyczenia;
 
 
--- TRIGERY
+select * from V_Sprawdzenie_Platnosci
+
+
+-- TRIGGERY
 -- 1. Sprawdzajacy czy data wypozyczenia auta jest wieksza niz data zatrudnienia pracownika
 CREATE TRIGGER CheckDataWypozyczenia
 ON dbo.Wypozyczenia
@@ -302,30 +300,48 @@ BEGIN
 END;
 GO
 
--- -- 2. Triger sprawdzajacy wiek klienta kiedy nie am 18 lat nie mozemy dodac go do tabeli klienci
--- CREATE TRIGGER CheckWiekKlienta
--- ON dbo.Klienci
--- AFTER INSERT, UPDATE
--- AS
--- BEGIN
---     IF EXISTS (
---         SELECT 1
---         FROM inserted
---         WHERE DATEDIFF(YEAR, data_urodzenia, GETDATE()) < 18
---     )
---     BEGIN
---         RAISERROR('Klient musi mieć co najmniej 18 lat.', 16, 1);
---         ROLLBACK TRANSACTION;
---         RETURN;
---     END;
--- END;
--- GO
+-- 2. Trigger sprawdzajacy wiek klienta kiedy nie am 18 lat nie mozemy dodac go do tabeli klienci
+CREATE TRIGGER SprawdzWiekKlienta
+ON dbo.Klienci
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM inserted
+        WHERE DATEDIFF(YEAR, data_urodzenia, GETDATE()) < 18
+    )
+    BEGIN
+        RAISERROR('Klient musi mieć co najmniej 18 lat.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END;
+END;
+GO
+
+-- 3. Trigger, ktory sprawdza poprzez sprawdzenie z widoku V_SPRAWDZENIE_PLATNOSCI, czy status płatnosci jest zaplacony jesli nie to nie pozwoli nam to dodan do tabeli faktury nowej faktury
+CREATE TRIGGER PreventInvoiceInsert
+ON dbo.Faktury
+INSTEAD OF INSERT
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN V_Sprawdzenie_Platnosci v ON i.id_wypozyczenia = v.id_wypozyczenia
+        WHERE v.status_platnosci IS NOT NULL
+    )
+    BEGIN
+        RAISERROR('Nie można dodać faktury, jeśli status płatności nie jest NULL.', 16, 1);
+    END
+    ELSE
+    BEGIN
+        INSERT INTO dbo.Faktury (numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia)
+        SELECT numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia
+        FROM inserted;
+    END
+END;
 
 
 
 
-
-
-select id_samochodu, id_klasy from dbo.Samochody
-
-select id_klasy, cena from dbo.Klasy_samochodow
