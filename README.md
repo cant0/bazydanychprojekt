@@ -210,7 +210,14 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 | status_faktrury  | nvarchar(15)  | status opłacenia faktury         |
 | id_wypozyczenia  | int           | klucz obcy z tabeli Wypozyczenia |
 
+# Nazwa tabeli: "Klasy_samochodowe"
+- Opis: (Tabela "Klasy_samochodowe" przechowuje informacje o klasie samochodu i jego cenie.)
 
+| Nazwa atrybutu  | Typ           | Opis/Uwagi                      |
+|-----------------|---------------|---------------------------------|
+| id_klasy        | int           | klucz główny tabeli             |
+| klasa_samochodu | nvarchar(15)  | klas samochodu                  |
+| cena            | decimal(10,2) | cena samochodu zalezna od klasy |
 
 # 4.	Implementacja
 
