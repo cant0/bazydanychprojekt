@@ -108,20 +108,20 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 # Nazwa tabeli: Pracownicy
 - Opis: (Tabela "Pracownicy" przechowuje informacje o pracownikach firmy.)
 
-| Nazwa atrybutu    | Typ          | Opis/Uwagi                                  |
-|-------------------|--------------|---------------------------------------------|
-| id_pracownika     | int          | klucz główny tabeli                         |
-| imie              | nvarchar(50) | imię pracownika                             |
-| nazwisko          | nvarchar(50) | nazwisko pracownika                         |
-| data_urodzenia    | date         | data urodzenia pracownika                   |
-| stanowisko        | nvarchar(50) | stanowisko pracownika                       |
-| numer_telefonu    | nvarchar(20) | numer telefonu pracownika                   |
-| email             | nvarchar(100) | email pracownika                            |
-| adres             | nvarchar(255) | adres pracownika                            |
-| miasto            | nvarchar(50) | miasto w którym mieszka pracownik           |
-| kod_pocztowy      | nvarchar(20) | kod pocztowy zamieszkania pracownika        |
-| kraj              | nvarchar(20) | kraj w którym mieszka pracownik             |
-| data_zatrudnienia | date         | data zatrudnienia pracownika w wypożyczalni |
+| Nazwa atrybutu    | Typ            | Opis/Uwagi                                  |
+|-------------------|----------------|---------------------------------------------|
+| id_pracownika     | int            | klucz główny tabeli                         |
+| imie              | nvarchar(50)   | imię pracownika                             |
+| nazwisko          | nvarchar(50)   | nazwisko pracownika                         |
+| data_urodzenia    | date           | data urodzenia pracownika                   |
+| stanowisko        | nvarchar(50)   | stanowisko pracownika                       |
+| numer_telefonu    | nvarchar(20)   | numer telefonu pracownika                   |
+| email             | nvarchar(100)  | email pracownika                            |
+| adres             | nvarchar(255)  | adres pracownika                            |
+| miasto            | nvarchar(50)   | miasto w którym mieszka pracownik           |
+| kod_pocztowy      | nvarchar(20)   | kod pocztowy zamieszkania pracownika        |
+| kraj              | nvarchar(20)   | kraj w którym mieszka pracownik             |
+| data_zatrudnienia | date           | data zatrudnienia pracownika w wypożyczalni |
 
 # Nazwa tabeli: Wypozyczenia
 - Opis: (Tabela "Wypożyczenia" przechowuje informacje o wypożyczeniach samochodów.)
@@ -199,7 +199,6 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 # Nazwa tabeli: Faktury
 - Opis: (Tabela "Faktury" przechowuje informacje o wystawionych fakturach dla wypożyczeń samochodów.)
 
-<<<<<<< HEAD
 | Nazwa atrybutu   | Typ          | Opis/Uwagi                       |
 |------------------|--------------|----------------------------------|
 | id_faktury       | int          | klucz główny tabeli              |
@@ -207,22 +206,10 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 | data_wystawienia | date         | data wystawienia faktury         |
 | id_wypozyczenia  | int          | klucz obcy z tabeli Wypozyczenia |
 | stawka_vat       | decimal(3,2) | stawka vat = 23%                 |
-=======
-| Nazwa atrybutu   | Typ           | Opis/Uwagi                       |
-|------------------|---------------|----------------------------------|
-| id_faktury       | int           | klucz główny tabeli              |
-| numer_faktury    | nvarchar(20)  | numer wystawionej fakrury        |
-| data_wystawienia | date          | data wystawienia faktury         |
-| data_płatności   | date          | data płatności                   |
-| podatek_vat      | decimal(3,2)  | podatek vat od kwoty brutto      |
-| kwota_netto      | decimal(10,2) | kwota netto                      |
-| kwota_brutto     | decimal(10,2) | kwota brutto                     |
-| status_faktrury  | nvarchar(15)  | status opłacenia faktury         |
-| id_wypozyczenia  | int           | klucz obcy z tabeli Wypozyczenia |
+
 
 # Nazwa tabeli: "Klasy_samochodowe"
 - Opis: (Tabela "Klasy_samochodowe" przechowuje informacje o klasie samochodu i jego cenie.)
->>>>>>> origin/main
 
 | Nazwa atrybutu  | Typ           | Opis/Uwagi                      |
 |-----------------|---------------|---------------------------------|
