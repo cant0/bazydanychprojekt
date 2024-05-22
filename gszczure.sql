@@ -349,16 +349,12 @@ VALUES
 -- nie widzac tego w widoku V_SPRAWDZENIE_PLATNOSCI
 
 
-
-SET IDENTITY_INSERT dbo.Platnosci OFF;
-
-
 -- nie dziala
 SET IDENTITY_INSERT dbo.Faktury ON;
 INSERT INTO dbo.Faktury (id_faktury, numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia)
 VALUES (1, '202401011', '2024-01-15', 0.23, 2),
-       (4, '202212004', '2022-12-04', 0.23, 4),
-       (5, '202209006', '2022-09-06', 0.23, 5);
+       (2, '202212004', '2022-12-04', 0.23, 4),
+       (3, '202209006', '2022-09-06', 0.23, 5);
 SET IDENTITY_INSERT dbo.Faktury OFF;
 
 -- nie dziala i tak ma byc bo trigger ma to wylapac
