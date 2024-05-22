@@ -238,7 +238,7 @@ SELECT
     P.id_platnosci,
     P.id_wypozyczenia,
     P.kwota_wplaty,
-    KosztNajmu.calkowity_koszt_brutto AS kwota_calkowita_brutto,
+    KosztNajmu.calkowity_koszt_brutto,
     CASE
         WHEN P.kwota_wplaty = KosztNajmu.calkowity_koszt_brutto THEN NULL
         ELSE P.kwota_wplaty - KosztNajmu.calkowity_koszt_brutto
@@ -322,7 +322,7 @@ BEGIN
         WHERE v.status_platnosci IS NOT NULL
     )
     BEGIN
-        RAISERROR('Nie można dodać faktury, jeśli status płatności nie jest NULL.', 16, 1);
+        RAISERROR('Nie można dodać faktury, jeśli płatnosć nie jest w pełni uregulowana.', 16, 1);
     END
     ELSE
     BEGIN
@@ -335,4 +335,33 @@ GO
 
 
 
+
+Select * FROM V_CalkowityKosztNajmu_Z_Rabatem
+
+
+SELECT * FROM V_Sprawdzenie_Platnosci
+
+SET IDENTITY_INSERT dbo.Platnosci ON;
+INSERT INTO dbo.Platnosci (id_platnosci, id_wypozyczenia, rodzaj_platnosci, data_platnosci, kwota_wplaty)
+VALUES
+       (9, 10, N'Gotowka', '2024-05-21', 600.00);
+
+-- nie widzac tego w widoku V_SPRAWDZENIE_PLATNOSCI
+
+
+
+SET IDENTITY_INSERT dbo.Platnosci OFF;
+
+
+-- nie dziala
+SET IDENTITY_INSERT dbo.Faktury ON;
+INSERT INTO dbo.Faktury (id_faktury, numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia)
+VALUES (1, '202401011', '2024-01-15', 0.23, 2),
+       (4, '202212004', '2022-12-04', 0.23, 4),
+       (5, '202209006', '2022-09-06', 0.23, 5);
+SET IDENTITY_INSERT dbo.Faktury OFF;
+
+-- nie dziala i tak ma byc bo trigger ma to wylapac
+INSERT INTO dbo.Faktury (numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia)
+VALUES ('F2', '2024-01-11', 0.23, 1);
 
