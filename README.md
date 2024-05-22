@@ -208,7 +208,7 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 | stawka_vat       | decimal(3,2) | stawka vat = 23%                 |
 
 
-# Nazwa tabeli: "Klasy_samochodowe"
+# Nazwa tabeli: Klasy_samochodowe
 - Opis: (Tabela "Klasy_samochodowe" przechowuje informacje o klasie samochodu i jego cenie.)
 
 | Nazwa atrybutu  | Typ           | Opis/Uwagi                      |
