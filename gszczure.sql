@@ -258,80 +258,80 @@ select * from V_Sprawdzenie_Platnosci
 
 -- TRIGGERY
 -- 1. Sprawdzajacy czy data wypozyczenia auta jest wieksza niz data zatrudnienia pracownika
-CREATE TRIGGER SprawdzDataWypozyczenia
-ON dbo.Wypozyczenia
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM inserted i
-        INNER JOIN dbo.Pracownicy p ON i.pracownik_wypozyczajacy = p.id_pracownika
-        WHERE i.data_wypozyczenia <= p.data_zatrudnienia
-    )
-    BEGIN
-        RAISERROR('Data wypożyczenia musi być większa niż data zatrudnienia pracownika wypożyczającego.', 16, 1);
-        ROLLBACK TRANSACTION;
-        RETURN;
-    END;
-
-    IF EXISTS (
-        SELECT 1
-        FROM inserted i
-        INNER JOIN dbo.Pracownicy p ON i.pracownik_odbierajacy = p.id_pracownika
-        WHERE i.data_zwrotu_rzeczywista IS NOT NULL
-        AND i.data_zwrotu_rzeczywista <= p.data_zatrudnienia
-    )
-    BEGIN
-        RAISERROR('Data zwrotu rzeczywista musi być większa niż data zatrudnienia pracownika odbierającego.', 16, 1);
-        ROLLBACK TRANSACTION;
-        RETURN;
-    END;
-END;
-GO
-
--- 2. Trigger sprawdzajacy wiek klienta kiedy nie am 18 lat nie mozemy dodac go do tabeli klienci
-CREATE TRIGGER SprawdzWiekKlienta
-ON dbo.Klienci
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM inserted
-        WHERE DATEDIFF(YEAR, data_urodzenia, GETDATE()) < 18
-    )
-    BEGIN
-        RAISERROR('Klient musi mieć co najmniej 18 lat.', 16, 1);
-        ROLLBACK TRANSACTION;
-        RETURN;
-    END;
-END;
-GO
-
--- 3. Trigger, ktory sprawdza poprzez sprawdzenie z widoku V_SPRAWDZENIE_PLATNOSCI, czy status płatnosci jest zaplacony jesli nie to nie pozwoli nam to dodan do tabeli faktury nowej faktury
-CREATE TRIGGER ZapobiegajWystawianiuFaktru
-ON dbo.Faktury
-INSTEAD OF INSERT
-AS
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM inserted i
-        JOIN V_Sprawdzenie_Platnosci v ON i.id_wypozyczenia = v.id_wypozyczenia
-        WHERE v.status_platnosci IS NOT NULL
-    )
-    BEGIN
-        RAISERROR('Nie można dodać faktury, jeśli płatnosć nie jest w pełni uregulowana.', 16, 1);
-    END
-    ELSE
-    BEGIN
-        INSERT INTO dbo.Faktury (numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia)
-        SELECT numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia
-        FROM inserted;
-    END
-END;
-GO
+-- CREATE TRIGGER SprawdzDataWypozyczenia
+-- ON dbo.Wypozyczenia
+-- AFTER INSERT, UPDATE
+-- AS
+-- BEGIN
+--     IF EXISTS (
+--         SELECT 1
+--         FROM inserted i
+--         INNER JOIN dbo.Pracownicy p ON i.pracownik_wypozyczajacy = p.id_pracownika
+--         WHERE i.data_wypozyczenia <= p.data_zatrudnienia
+--     )
+--     BEGIN
+--         RAISERROR('Data wypożyczenia musi być większa niż data zatrudnienia pracownika wypożyczającego.', 16, 1);
+--         ROLLBACK TRANSACTION;
+--         RETURN;
+--     END;
+--
+--     IF EXISTS (
+--         SELECT 1
+--         FROM inserted i
+--         INNER JOIN dbo.Pracownicy p ON i.pracownik_odbierajacy = p.id_pracownika
+--         WHERE i.data_zwrotu_rzeczywista IS NOT NULL
+--         AND i.data_zwrotu_rzeczywista <= p.data_zatrudnienia
+--     )
+--     BEGIN
+--         RAISERROR('Data zwrotu rzeczywista musi być większa niż data zatrudnienia pracownika odbierającego.', 16, 1);
+--         ROLLBACK TRANSACTION;
+--         RETURN;
+--     END;
+-- END;
+-- GO
+--
+-- -- 2. Trigger sprawdzajacy wiek klienta kiedy nie am 18 lat nie mozemy dodac go do tabeli klienci
+-- CREATE TRIGGER SprawdzWiekKlienta
+-- ON dbo.Klienci
+-- AFTER INSERT, UPDATE
+-- AS
+-- BEGIN
+--     IF EXISTS (
+--         SELECT 1
+--         FROM inserted
+--         WHERE DATEDIFF(YEAR, data_urodzenia, GETDATE()) < 18
+--     )
+--     BEGIN
+--         RAISERROR('Klient musi mieć co najmniej 18 lat.', 16, 1);
+--         ROLLBACK TRANSACTION;
+--         RETURN;
+--     END;
+-- END;
+-- GO
+--
+-- -- 3. Trigger, ktory sprawdza poprzez sprawdzenie z widoku V_SPRAWDZENIE_PLATNOSCI, czy status płatnosci jest zaplacony jesli nie to nie pozwoli nam to dodan do tabeli faktury nowej faktury
+-- CREATE TRIGGER ZapobiegajWystawianiuFaktru
+-- ON dbo.Faktury
+-- INSTEAD OF INSERT
+-- AS
+-- BEGIN
+--     IF EXISTS (
+--         SELECT 1
+--         FROM inserted i
+--         JOIN V_Sprawdzenie_Platnosci v ON i.id_wypozyczenia = v.id_wypozyczenia
+--         WHERE v.status_platnosci IS NOT NULL
+--     )
+--     BEGIN
+--         RAISERROR('Nie można dodać faktury, jeśli płatnosć nie jest w pełni uregulowana.', 16, 1);
+--     END
+--     ELSE
+--     BEGIN
+--         INSERT INTO dbo.Faktury (numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia)
+--         SELECT numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia
+--         FROM inserted;
+--     END
+-- END;
+-- GO
 
 
 
