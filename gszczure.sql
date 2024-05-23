@@ -248,48 +248,46 @@ FROM
 JOIN
     dbo.Wypozyczenia W ON P.id_wypozyczenia = W.id_wypozyczenia
 JOIN
-    dbo.Faktury F ON W.id_wypozyczenia = F.id_wypozyczenia
-JOIN
     dbo.V_CalkowityKosztNajmu_Z_Rabatem KosztNajmu ON P.id_wypozyczenia = KosztNajmu.id_wypozyczenia;
 
 
 select * from V_Sprawdzenie_Platnosci
 
 
--- TRIGGERY
--- 1. Sprawdzajacy czy data wypozyczenia auta jest wieksza niz data zatrudnienia pracownika
--- CREATE TRIGGER SprawdzDataWypozyczenia
--- ON dbo.Wypozyczenia
--- AFTER INSERT, UPDATE
--- AS
--- BEGIN
---     IF EXISTS (
---         SELECT 1
---         FROM inserted i
---         INNER JOIN dbo.Pracownicy p ON i.pracownik_wypozyczajacy = p.id_pracownika
---         WHERE i.data_wypozyczenia <= p.data_zatrudnienia
---     )
---     BEGIN
---         RAISERROR('Data wypożyczenia musi być większa niż data zatrudnienia pracownika wypożyczającego.', 16, 1);
---         ROLLBACK TRANSACTION;
---         RETURN;
---     END;
---
---     IF EXISTS (
---         SELECT 1
---         FROM inserted i
---         INNER JOIN dbo.Pracownicy p ON i.pracownik_odbierajacy = p.id_pracownika
---         WHERE i.data_zwrotu_rzeczywista IS NOT NULL
---         AND i.data_zwrotu_rzeczywista <= p.data_zatrudnienia
---     )
---     BEGIN
---         RAISERROR('Data zwrotu rzeczywista musi być większa niż data zatrudnienia pracownika odbierającego.', 16, 1);
---         ROLLBACK TRANSACTION;
---         RETURN;
---     END;
--- END;
--- GO
---
+TRIGGERY
+1. Sprawdzajacy czy data wypozyczenia auta jest wieksza niz data zatrudnienia pracownika
+CREATE TRIGGER SprawdzDataWypozyczenia
+ON dbo.Wypozyczenia
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        INNER JOIN dbo.Pracownicy p ON i.pracownik_wypozyczajacy = p.id_pracownika
+        WHERE i.data_wypozyczenia <= p.data_zatrudnienia
+    )
+    BEGIN
+        RAISERROR('Data wypożyczenia musi być większa niż data zatrudnienia pracownika wypożyczającego.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END;
+
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        INNER JOIN dbo.Pracownicy p ON i.pracownik_odbierajacy = p.id_pracownika
+        WHERE i.data_zwrotu_rzeczywista IS NOT NULL
+        AND i.data_zwrotu_rzeczywista <= p.data_zatrudnienia
+    )
+    BEGIN
+        RAISERROR('Data zwrotu rzeczywista musi być większa niż data zatrudnienia pracownika odbierającego.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END;
+END;
+GO
+
 -- -- 2. Trigger sprawdzajacy wiek klienta kiedy nie am 18 lat nie mozemy dodac go do tabeli klienci
 -- CREATE TRIGGER SprawdzWiekKlienta
 -- ON dbo.Klienci
@@ -309,29 +307,29 @@ select * from V_Sprawdzenie_Platnosci
 -- END;
 -- GO
 --
--- -- 3. Trigger, ktory sprawdza poprzez sprawdzenie z widoku V_SPRAWDZENIE_PLATNOSCI, czy status płatnosci jest zaplacony jesli nie to nie pozwoli nam to dodan do tabeli faktury nowej faktury
--- CREATE TRIGGER ZapobiegajWystawianiuFaktru
--- ON dbo.Faktury
--- INSTEAD OF INSERT
--- AS
--- BEGIN
---     IF EXISTS (
---         SELECT 1
---         FROM inserted i
---         JOIN V_Sprawdzenie_Platnosci v ON i.id_wypozyczenia = v.id_wypozyczenia
---         WHERE v.status_platnosci IS NOT NULL
---     )
---     BEGIN
---         RAISERROR('Nie można dodać faktury, jeśli płatnosć nie jest w pełni uregulowana.', 16, 1);
---     END
---     ELSE
---     BEGIN
---         INSERT INTO dbo.Faktury (numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia)
---         SELECT numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia
---         FROM inserted;
---     END
--- END;
--- GO
+-- 3. Trigger, ktory sprawdza poprzez sprawdzenie z widoku V_SPRAWDZENIE_PLATNOSCI, czy status płatnosci jest zaplacony jesli nie to nie pozwoli nam to dodan do tabeli faktury nowej faktury
+CREATE TRIGGER ZapobiegajWystawianiuFaktru
+ON dbo.Faktury
+INSTEAD OF INSERT
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN V_Sprawdzenie_Platnosci v ON i.id_wypozyczenia = v.id_wypozyczenia
+        WHERE v.status_platnosci IS NOT NULL
+    )
+    BEGIN
+        RAISERROR('Nie można dodać faktury, jeśli płatnosć nie jest w pełni uregulowana.', 16, 1);
+    END
+    ELSE
+    BEGIN
+        INSERT INTO dbo.Faktury (numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia)
+        SELECT numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia
+        FROM inserted;
+    END
+END;
+GO
 
 
 
@@ -349,6 +347,7 @@ VALUES
 -- nie widzac tego w widoku V_SPRAWDZENIE_PLATNOSCI
 
 
+
 -- nie dziala
 SET IDENTITY_INSERT dbo.Faktury ON;
 INSERT INTO dbo.Faktury (id_faktury, numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia)
@@ -357,7 +356,55 @@ VALUES (1, '202401011', '2024-01-15', 0.23, 2),
        (3, '202209006', '2022-09-06', 0.23, 5);
 SET IDENTITY_INSERT dbo.Faktury OFF;
 
--- nie dziala i tak ma byc bo trigger ma to wylapac
-INSERT INTO dbo.Faktury (numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia)
-VALUES ('F2', '2024-01-11', 0.23, 1);
+delete from dbo.Faktury
 
+SET IDENTITY_INSERT dbo.Faktury ON;
+
+INSERT INTO dbo.Faktury (numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia)
+VALUES ('202401011', '2024-01-15', 0.23, 2),
+       ('202212004', '2022-12-04', 0.23, 4),
+       ('202209006', '2022-09-06', 0.23, 5);
+
+SET IDENTITY_INSERT dbo.Faktury OFF;
+
+dbcc checkident ('dbo.Faktury', reseed, 0)
+
+select  * FROM dbo.Platnosci
+SELECT * FROM V_Sprawdzenie_Platnosci
+
+-- Procedury
+-- Procedura dodawania nowego klienta
+CREATE PROCEDURE DodawanieNowegoKlienta (
+    @imie NVARCHAR(50),
+    @nazwisko NVARCHAR(100),
+    @data_urodzenia DATE,
+    @adres NVARCHAR(255),
+    @miasto NVARCHAR(50),
+    @kod_pocztowy NVARCHAR(20),
+    @kraj NVARCHAR(50),
+    @numer_telefonu NVARCHAR(20),
+    @email NVARCHAR(100),
+    @pesel NVARCHAR(11),
+    @nr_prawa_jazdy NVARCHAR(50),
+    @rabat DECIMAL(3, 2)
+)
+AS
+BEGIN
+    INSERT INTO dbo.Klienci (imie, nazwisko, data_urodzenia, adres, miasto, kod_pocztowy, kraj, numer_telefonu, email, pesel, nr_prawa_jazdy, rabat)
+    VALUES (@imie, @nazwisko, @data_urodzenia, @adres, @miasto, @kod_pocztowy, @kraj, @numer_telefonu, @email, @pesel, @nr_prawa_jazdy, @rabat);
+END;
+GO
+
+--2. Procedura umozliwiajaca zmienienie sprawnosci samochodu
+
+CREATE PROCEDURE AktualizujStanSamochodu (
+    @id_samochodu INT,
+    @nowy_stan NVARCHAR(20)
+)
+AS
+BEGIN
+    UPDATE dbo.Samochody
+    SET stan_techniczny = @nowy_stan
+    WHERE id_samochodu = @id_samochodu;
+END;
+GO
