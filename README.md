@@ -1,4 +1,18 @@
 # Projekt Bazy Danych
+ 
+
+<!-- <style>
+ p,li {
+    font-size: 12pt;
+  }
+</style>  -->
+
+<!-- <style>
+ pre {
+    font-size: 8pt;
+  }
+</style>  -->
+
 
 ---
 
@@ -43,40 +57,7 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 
 ## Schemat bazy danych
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![img.png](img.png)
 
 
 ## Opis poszczególnych tabel
@@ -506,20 +487,7 @@ WHERE
     W.data_zwrotu_rzeczywista >= W.data_wypozyczenia;
 GO
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![img_1.png](img_1.png)
 **2. Dosępność samochodów**
 
 Widok "V_Dostepne_Samochody" został stworzony, aby dostarczyć informacje o wszystkich dostępnych samochodach w bazie danych. 
@@ -545,19 +513,7 @@ WHERE
     S.dostepnosc = 'Dostepny';
 GO
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
+![img_2.png](img_2.png)
 **3. Klienci i ich liczba wypożyczeń**
 
 Widok "V_Klienci_Z_Wypozyczeniami" przedstawia klientów wraz z liczbą dokonanych przez nich wypożyczeń.
@@ -576,18 +532,7 @@ LEFT JOIN
 GROUP BY
     K.id_klienta, K.imie, K.nazwisko;
 ```
-
-
-
-
-
-
-
-
-
-
-
-
+![img_3.png](img_3.png)
 **4. Samochody i ich klasy wraz z ceną**
 
 Ten widok przedstawia szczegółowe informacje o samochodach wraz z ich klasą oraz ceną wynajmu. 
@@ -612,23 +557,7 @@ JOIN
 JOIN
     dbo.Klasy_samochodow K ON S.id_klasy = K.id_klasy;
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![img_4.png](img_4.png)
 **5. Informacje o fakturach**
 
 Ten widok zawiera informacje o fakturach wraz z kwotami brutto za wypożyczenie. 
@@ -654,24 +583,7 @@ JOIN
 JOIN
     dbo.Klienci K ON K.id_klienta = W.id_klienta;
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![img_6.png](img_6.png)
 **6. Sprawdzanie płatności**
 
 Ten widok służy do sprawdzania statusu płatności za wypożyczenia. 
@@ -696,20 +608,7 @@ JOIN
 JOIN
     dbo.V_CalkowityKosztNajmu_Z_Rabatem KosztNajmu ON P.id_wypozyczenia = KosztNajmu.id_wypozyczenia;
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![img_5.png](img_5.png)
 ## Procedury
 **1. AktualizujStanSamochodu**
 
