@@ -240,7 +240,7 @@ SELECT
     P.kwota_wplaty,
     KosztNajmu.calkowity_koszt_brutto,
     CASE
-        WHEN P.kwota_wplaty = KosztNajmu.calkowity_koszt_brutto THEN NULL
+        WHEN P.kwota_wplaty = KosztNajmu.calkowity_koszt_brutto THEN 0
         ELSE P.kwota_wplaty - KosztNajmu.calkowity_koszt_brutto
     END AS status_platnosci
 FROM
@@ -254,60 +254,27 @@ JOIN
 select * from V_Sprawdzenie_Platnosci
 
 
-TRIGGERY
-1. Sprawdzajacy czy data wypozyczenia auta jest wieksza niz data zatrudnienia pracownika
-CREATE TRIGGER SprawdzDataWypozyczenia
-ON dbo.Wypozyczenia
+--TRIGGERY
+-- 1. Trigger sprawdzajacy wiek klienta kiedy nie am 18 lat nie mozemy dodac go do tabeli klienci
+CREATE TRIGGER SprawdzWiekKlienta
+ON dbo.Klienci
 AFTER INSERT, UPDATE
 AS
 BEGIN
     IF EXISTS (
         SELECT 1
-        FROM inserted i
-        INNER JOIN dbo.Pracownicy p ON i.pracownik_wypozyczajacy = p.id_pracownika
-        WHERE i.data_wypozyczenia <= p.data_zatrudnienia
+        FROM inserted
+        WHERE DATEDIFF(YEAR, data_urodzenia, GETDATE()) < 18
     )
     BEGIN
-        RAISERROR('Data wypożyczenia musi być większa niż data zatrudnienia pracownika wypożyczającego.', 16, 1);
-        ROLLBACK TRANSACTION;
-        RETURN;
-    END;
-
-    IF EXISTS (
-        SELECT 1
-        FROM inserted i
-        INNER JOIN dbo.Pracownicy p ON i.pracownik_odbierajacy = p.id_pracownika
-        WHERE i.data_zwrotu_rzeczywista IS NOT NULL
-        AND i.data_zwrotu_rzeczywista <= p.data_zatrudnienia
-    )
-    BEGIN
-        RAISERROR('Data zwrotu rzeczywista musi być większa niż data zatrudnienia pracownika odbierającego.', 16, 1);
+        RAISERROR('Klient musi mieć co najmniej 18 lat.', 16, 1);
         ROLLBACK TRANSACTION;
         RETURN;
     END;
 END;
 GO
 
--- -- 2. Trigger sprawdzajacy wiek klienta kiedy nie am 18 lat nie mozemy dodac go do tabeli klienci
--- CREATE TRIGGER SprawdzWiekKlienta
--- ON dbo.Klienci
--- AFTER INSERT, UPDATE
--- AS
--- BEGIN
---     IF EXISTS (
---         SELECT 1
---         FROM inserted
---         WHERE DATEDIFF(YEAR, data_urodzenia, GETDATE()) < 18
---     )
---     BEGIN
---         RAISERROR('Klient musi mieć co najmniej 18 lat.', 16, 1);
---         ROLLBACK TRANSACTION;
---         RETURN;
---     END;
--- END;
--- GO
---
--- 3. Trigger, ktory sprawdza poprzez sprawdzenie z widoku V_SPRAWDZENIE_PLATNOSCI, czy status płatnosci jest zaplacony jesli nie to nie pozwoli nam to dodan do tabeli faktury nowej faktury
+-- 2. Trigger, ktory sprawdza poprzez sprawdzenie z widoku V_SPRAWDZENIE_PLATNOSCI, czy status płatnosci jest zaplacony jesli nie to nie pozwoli nam to dodan do tabeli faktury nowej faktury
 CREATE TRIGGER ZapobiegajWystawianiuFaktru
 ON dbo.Faktury
 INSTEAD OF INSERT
@@ -317,7 +284,7 @@ BEGIN
         SELECT 1
         FROM inserted i
         JOIN V_Sprawdzenie_Platnosci v ON i.id_wypozyczenia = v.id_wypozyczenia
-        WHERE v.status_platnosci IS NOT NULL
+        WHERE v.status_platnosci != 0
     )
     BEGIN
         RAISERROR('Nie można dodać faktury, jeśli płatnosć nie jest w pełni uregulowana.', 16, 1);
@@ -332,8 +299,6 @@ END;
 GO
 
 
-
-
 Select * FROM V_CalkowityKosztNajmu_Z_Rabatem
 
 
@@ -343,9 +308,6 @@ SET IDENTITY_INSERT dbo.Platnosci ON;
 INSERT INTO dbo.Platnosci (id_platnosci, id_wypozyczenia, rodzaj_platnosci, data_platnosci, kwota_wplaty)
 VALUES
        (9, 10, N'Gotowka', '2024-05-21', 600.00);
-
--- nie widzac tego w widoku V_SPRAWDZENIE_PLATNOSCI
-
 
 
 -- nie dziala
@@ -374,29 +336,7 @@ select  * FROM dbo.Platnosci
 SELECT * FROM V_Sprawdzenie_Platnosci
 
 -- Procedury
--- Procedura dodawania nowego klienta
-CREATE PROCEDURE DodawanieNowegoKlienta (
-    @imie NVARCHAR(50),
-    @nazwisko NVARCHAR(100),
-    @data_urodzenia DATE,
-    @adres NVARCHAR(255),
-    @miasto NVARCHAR(50),
-    @kod_pocztowy NVARCHAR(20),
-    @kraj NVARCHAR(50),
-    @numer_telefonu NVARCHAR(20),
-    @email NVARCHAR(100),
-    @pesel NVARCHAR(11),
-    @nr_prawa_jazdy NVARCHAR(50),
-    @rabat DECIMAL(3, 2)
-)
-AS
-BEGIN
-    INSERT INTO dbo.Klienci (imie, nazwisko, data_urodzenia, adres, miasto, kod_pocztowy, kraj, numer_telefonu, email, pesel, nr_prawa_jazdy, rabat)
-    VALUES (@imie, @nazwisko, @data_urodzenia, @adres, @miasto, @kod_pocztowy, @kraj, @numer_telefonu, @email, @pesel, @nr_prawa_jazdy, @rabat);
-END;
-GO
-
---2. Procedura umozliwiajaca zmienienie sprawnosci samochodu
+--1. Procedura umozliwiajaca zmienienie sprawnosci samochodu
 
 CREATE PROCEDURE AktualizujStanSamochodu (
     @id_samochodu INT,
@@ -409,11 +349,11 @@ BEGIN
     WHERE id_samochodu = @id_samochodu;
 END;
 GO
+-- wykonanie procedury
+execute AktualizujStanSamochodu 11, 'Niesprawny'
 
---3.Procedura która zwraca dostępne samochody w określonym mieście i przedziale czasowym
-
+--2.Procedura która zwraca dostępne samochody w określonym przedziale czasowym -- git
 CREATE PROCEDURE SprawdzDostepnoscSamochodow
-    @miasto NVARCHAR(50),
     @data_od DATE,
     @data_do DATE
 AS
@@ -452,10 +392,8 @@ BEGIN
         dbo.Samochody s
         INNER JOIN dbo.Modele m ON s.id_modelu = m.id_modelu
         INNER JOIN dbo.Marki mk ON m.id_marki = mk.id_marki
-        INNER JOIN dbo.Miejsca msc ON s.id_samochodu = msc.id_miejsca
     WHERE
         s.dostepnosc = 'Dostepny'
-        AND msc.miasto = @miasto
         AND s.id_samochodu NOT IN (
             SELECT id_samochodu
             FROM dbo.Wypozyczenia
@@ -465,10 +403,111 @@ BEGIN
                 OR (@data_od BETWEEN data_wypozyczenia AND data_zwrotu_planowana)
                 OR (@data_do BETWEEN data_wypozyczenia AND data_zwrotu_planowana)
         );
+
     SELECT *
     FROM @dostepneSamochody;
 END
 GO
 
-EXEC SprawdzDostepnoscSamochodow 'Warszawa', '2024-07-01', '2024-07-10';
+-- wykonanie procedury
+EXEC SprawdzDostepnoscSamochodow '2024-01-16', '2024-01-20';
 
+-- 3. Procedura generująca pełny raport o wypożyczeniach samochodów, zawierający szczegółowe informacje o wypożyczeniach,
+-- klientach, samochodach oraz płatnościach.
+CREATE PROCEDURE GenerujRaportWypozyczen
+    @data_od DATE,
+    @data_do DATE
+AS
+BEGIN
+    DECLARE @raportWypozyczen TABLE
+    (
+        id_wypozyczenia INT,
+        data_wypozyczenia DATE,
+        data_zwrotu_planowana DATE,
+        data_zwrotu_rzeczywista DATE,
+        cena_dobowa DECIMAL(10, 2),
+        oplata_dodatkowa DECIMAL(10, 2),
+        klient_imie NVARCHAR(50),
+        klient_nazwisko NVARCHAR(100),
+        klient_email NVARCHAR(100),
+        samochod_model NVARCHAR(50),
+        samochod_marka NVARCHAR(50),
+        samochod_numer_rejestracyjny NVARCHAR(20),
+        pracownik_wypozyczajacy_imie NVARCHAR(50),
+        pracownik_wypozyczajacy_nazwisko NVARCHAR(50),
+        pracownik_odbierajacy_imie NVARCHAR(50),
+        pracownik_odbierajacy_nazwisko NVARCHAR(50),
+        miejsce_odbioru NVARCHAR(30),
+        miejsce_zwrotu NVARCHAR(30),
+        platnosc_rodzaj NVARCHAR(20),
+        platnosc_data DATE,
+        platnosc_kwota DECIMAL(10, 2)
+    );
+
+    INSERT INTO @raportWypozyczen
+    SELECT
+        w.id_wypozyczenia,
+        w.data_wypozyczenia,
+        w.data_zwrotu_planowana,
+        w.data_zwrotu_rzeczywista,
+        w.cena_dobowa,
+        w.oplata_dodatkowa,
+        k.imie AS klient_imie,
+        k.nazwisko AS klient_nazwisko,
+        k.email AS klient_email,
+        mo.nazwa_modelu AS samochod_model,
+        ma.Nazwa_marki AS samochod_marka,
+        s.numer_rejestracyjny AS samochod_numer_rejestracyjny,
+        pw.imie AS pracownik_wypozyczajacy_imie,
+        pw.nazwisko AS pracownik_wypozyczajacy_nazwisko,
+        po.imie AS pracownik_odbierajacy_imie,
+        po.nazwisko AS pracownik_odbierajacy_nazwisko,
+        m1.adres AS miejsce_odbioru,
+        m2.adres AS miejsce_zwrotu,
+        p.rodzaj_platnosci,
+        p.data_platnosci,
+        CAST(p.kwota_wplaty AS DECIMAL(10, 2)) AS platnosc_kwota
+    FROM
+        dbo.Wypozyczenia w
+        INNER JOIN dbo.Klienci k ON w.id_klienta = k.id_klienta
+        INNER JOIN dbo.Samochody s ON w.id_samochodu = s.id_samochodu
+        INNER JOIN dbo.Modele mo ON s.id_modelu = mo.id_modelu
+        INNER JOIN dbo.Marki ma ON mo.id_marki = ma.id_marki
+        INNER JOIN dbo.Pracownicy pw ON w.pracownik_wypozyczajacy = pw.id_pracownika
+        INNER JOIN dbo.Pracownicy po ON w.pracownik_odbierajacy = po.id_pracownika
+        INNER JOIN dbo.Miejsca m1 ON w.miejsce_odbioru = m1.id_miejsca
+        INNER JOIN dbo.Miejsca m2 ON w.miejsce_zwrotu = m2.id_miejsca
+        LEFT JOIN dbo.Platnosci p ON w.id_wypozyczenia = p.id_wypozyczenia
+    WHERE
+        w.data_wypozyczenia BETWEEN @data_od AND @data_do;
+
+    SELECT *
+    FROM @raportWypozyczen
+    ORDER BY data_wypozyczenia;
+END
+GO
+
+-- wykonanie procedury
+EXEC GenerujRaportWypozyczen '2022-01-01', '2024-01-16';
+
+-- Funckjie
+CREATE FUNCTION LaczyPrzychodOkres(
+    @DataOd DATE,
+    @DataDo DATE
+)
+RETURNS DECIMAL(10, 2)
+AS
+BEGIN
+    DECLARE @Przychod DECIMAL(10, 2);
+
+    SELECT @Przychod = SUM(DATEDIFF(DAY, r.Data_Wypozyczenia, r.data_zwrotu_rzeczywista) * r.Cena_dobowa + ISNULL(r.Oplata_dodatkowa, 0))
+    FROM dbo.Wypozyczenia r
+    JOIN dbo.Samochody s ON r.id_samochodu = s.id_samochodu
+    WHERE r.Data_Wypozyczenia BETWEEN @DataOd AND @DataDo;
+
+    RETURN @Przychod;
+END
+GO
+
+-- wykonanie
+SELECT dbo.LaczyPrzychodOkres('2020-06-01', '2023-06-11') AS PrzychodZaOkres;
