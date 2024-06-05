@@ -370,6 +370,7 @@ SET IDENTITY_INSERT dbo.Faktury OFF;
 dbcc checkident ('dbo.Faktury', reseed, 0)
 
 select  * FROM dbo.Platnosci
+
 SELECT * FROM V_Sprawdzenie_Platnosci
 
 -- Procedury
