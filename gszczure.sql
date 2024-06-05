@@ -490,6 +490,37 @@ GO
 -- wykonanie procedury
 EXEC GenerujRaportWypozyczen '2022-01-01', '2024-01-16';
 
+-- 4. procedura pobierajaca wypozyczenia w danym okresie
+CREATE PROCEDURE PobierzWypozyczeniaWDacie
+    @data_od DATE,
+    @data_do DATE
+AS
+BEGIN
+    SELECT
+        id_wypozyczenia,
+        id_klienta,
+        imie_klienta,
+        nazwisko_klienta,
+        id_samochodu,
+        numer_rejestracyjny,
+        nazwa_modelu,
+        marka,
+        data_wypozyczenia,
+        data_zwrotu_planowana,
+        data_zwrotu_rzeczywista
+    FROM
+        V_Wypozyczenia_Z_Klientem_Samochodem
+    WHERE
+        data_wypozyczenia BETWEEN @data_od AND @data_do
+        OR data_zwrotu_planowana BETWEEN @data_od AND @data_do
+        OR (@data_od BETWEEN data_wypozyczenia AND data_zwrotu_planowana)
+        OR (@data_do BETWEEN data_wypozyczenia AND data_zwrotu_planowana);
+END
+GO
+
+-- wykonanie
+EXECUTE PobierzWypozyczeniaWDacie '2024-01-01', '2024-01-16';
+
 -- Funckjie
 CREATE FUNCTION LaczyPrzychodOkres(
     @DataOd DATE,
