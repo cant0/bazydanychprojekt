@@ -409,3 +409,66 @@ BEGIN
     WHERE id_samochodu = @id_samochodu;
 END;
 GO
+
+--3.Procedura która zwraca dostępne samochody w określonym mieście i przedziale czasowym
+
+CREATE PROCEDURE SprawdzDostepnoscSamochodow
+    @miasto NVARCHAR(50),
+    @data_od DATE,
+    @data_do DATE
+AS
+BEGIN
+    DECLARE @dostepneSamochody TABLE
+    (
+        id_samochodu INT,
+        model NVARCHAR(50),
+        marka NVARCHAR(50),
+        kolor NVARCHAR(20),
+        rok_produkcji INT,
+        numer_rejestracyjny NVARCHAR(20),
+        przebieg INT,
+        miejsca_siedzace INT,
+        skrzynia_biegow NVARCHAR(3),
+        naped NVARCHAR(4),
+        pojemnosc_silnika DECIMAL(3, 1),
+        stan_techniczny NVARCHAR(20)
+    );
+
+    INSERT INTO @dostepneSamochody
+    SELECT
+        s.id_samochodu,
+        m.nazwa_modelu AS model,
+        mk.Nazwa_marki AS marka,
+        s.kolor,
+        s.rok_produkcji,
+        s.numer_rejestracyjny,
+        s.przebieg,
+        s.miejsca_siedzace,
+        s.skrzynia_biegow,
+        s.naped,
+        s.pojemnosc_silnika,
+        s.stan_techniczny
+    FROM
+        dbo.Samochody s
+        INNER JOIN dbo.Modele m ON s.id_modelu = m.id_modelu
+        INNER JOIN dbo.Marki mk ON m.id_marki = mk.id_marki
+        INNER JOIN dbo.Miejsca msc ON s.id_samochodu = msc.id_miejsca
+    WHERE
+        s.dostepnosc = 'Dostepny'
+        AND msc.miasto = @miasto
+        AND s.id_samochodu NOT IN (
+            SELECT id_samochodu
+            FROM dbo.Wypozyczenia
+            WHERE
+                (data_wypozyczenia BETWEEN @data_od AND @data_do)
+                OR (data_zwrotu_planowana BETWEEN @data_od AND @data_do)
+                OR (@data_od BETWEEN data_wypozyczenia AND data_zwrotu_planowana)
+                OR (@data_do BETWEEN data_wypozyczenia AND data_zwrotu_planowana)
+        );
+    SELECT *
+    FROM @dostepneSamochody;
+END
+GO
+
+EXEC SprawdzDostepnoscSamochodow 'Warszawa', '2024-07-01', '2024-07-10';
+
