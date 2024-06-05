@@ -488,7 +488,7 @@ END
 GO
 
 -- wykonanie procedury
-EXEC GenerujRaportWypozyczen '2022-01-01', '2024-01-16';
+EXEC GenerujRaportWypozyczen @data_od = '2022-01-01', @data_do = '2024-01-16';
 
 -- 4. procedura pobierajaca wypozyczenia w danym okresie
 CREATE PROCEDURE PobierzWypozyczeniaWDacie
@@ -497,34 +497,42 @@ CREATE PROCEDURE PobierzWypozyczeniaWDacie
 AS
 BEGIN
     SELECT
-        id_wypozyczenia,
-        id_klienta,
-        imie_klienta,
-        nazwisko_klienta,
-        id_samochodu,
-        numer_rejestracyjny,
-        nazwa_modelu,
-        marka,
-        data_wypozyczenia,
-        data_zwrotu_planowana,
-        data_zwrotu_rzeczywista
+        W.id_wypozyczenia,
+        K.id_klienta,
+        K.imie AS imie_klienta,
+        K.nazwisko AS nazwisko_klienta,
+        S.id_samochodu,
+        S.numer_rejestracyjny,
+        M.nazwa_modelu,
+        Ma.Nazwa_marki AS marka,
+        W.data_wypozyczenia,
+        W.data_zwrotu_planowana,
+        W.data_zwrotu_rzeczywista
     FROM
-        V_Wypozyczenia_Z_Klientem_Samochodem
+        dbo.Wypozyczenia W
+    JOIN
+        dbo.Klienci K ON W.id_klienta = K.id_klienta
+    JOIN
+        dbo.Samochody S ON W.id_samochodu = S.id_samochodu
+    JOIN
+        dbo.Modele M ON S.id_modelu = M.id_modelu
+    JOIN
+        dbo.Marki Ma ON M.id_marki = Ma.id_marki
     WHERE
-        data_wypozyczenia BETWEEN @data_od AND @data_do
-        OR data_zwrotu_planowana BETWEEN @data_od AND @data_do
-        OR (@data_od BETWEEN data_wypozyczenia AND data_zwrotu_planowana)
-        OR (@data_do BETWEEN data_wypozyczenia AND data_zwrotu_planowana);
+        W.data_wypozyczenia BETWEEN @data_od AND @data_do
+        OR W.data_zwrotu_planowana BETWEEN @data_od AND @data_do
+        OR (@data_od BETWEEN W.data_wypozyczenia AND W.data_zwrotu_planowana)
+        OR (@data_do BETWEEN W.data_wypozyczenia AND W.data_zwrotu_planowana);
 END
 GO
 
 -- wykonanie
-EXECUTE PobierzWypozyczeniaWDacie '2024-01-01', '2024-01-16';
+EXECUTE PobierzWypozyczeniaWDacie '2022-01-01', '2024-01-16';
 
 -- Funckjie
 CREATE FUNCTION LaczyPrzychodOkres(
-    @DataOd DATE,
-    @DataDo DATE
+    @data_od DATE,
+    @data_do DATE
 )
 RETURNS DECIMAL(10, 2)
 AS
@@ -534,7 +542,7 @@ BEGIN
     SELECT @Przychod = SUM(DATEDIFF(DAY, r.Data_Wypozyczenia, r.data_zwrotu_rzeczywista) * r.Cena_dobowa + ISNULL(r.Oplata_dodatkowa, 0))
     FROM dbo.Wypozyczenia r
     JOIN dbo.Samochody s ON r.id_samochodu = s.id_samochodu
-    WHERE r.Data_Wypozyczenia BETWEEN @DataOd AND @DataDo;
+    WHERE r.Data_Wypozyczenia BETWEEN @data_od AND @data_do;
 
     RETURN @Przychod;
 END
@@ -542,3 +550,5 @@ GO
 
 -- wykonanie
 SELECT dbo.LaczyPrzychodOkres('2020-06-01', '2023-06-11') AS PrzychodZaOkres;
+
+SELECT dbo.LaczyPrzychodOkres(@data_od  '2020-06-01', @data_do = '2023-06-11') AS PrzychodZaOkres;

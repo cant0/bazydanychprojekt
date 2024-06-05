@@ -486,6 +486,7 @@ WHERE
     W.data_zwrotu_rzeczywista >= W.data_wypozyczenia;
 GO
 ```
+![img_1.png](img_1.png)
 **2. Dosępność samochodów**
 
 Widok "V_Dostepne_Samochody" został stworzony, aby dostarczyć informacje o wszystkich dostępnych samochodach w bazie danych. 
@@ -511,6 +512,7 @@ WHERE
     S.dostepnosc = 'Dostepny';
 GO
 ```
+![img_2.png](img_2.png)
 **3. Klienci i ich liczba wypożyczeń**
 
 Widok "V_Klienci_Z_Wypozyczeniami" przedstawia klientów wraz z liczbą dokonanych przez nich wypożyczeń.
@@ -529,37 +531,8 @@ LEFT JOIN
 GROUP BY
     K.id_klienta, K.imie, K.nazwisko;
 ```
-**4. Wypożyczenia**
-
-Ten widok zawiera szczegółowe informacje o wypożyczeniach, łącząc dane klienta z informacjami o wypożyczonym samochodzie. 
-Jest przydatny do monitorowania historii wypożyczeń, włączając w to dane o klientach oraz pojazdach, które wypożyczyli.
-```sql
-CREATE VIEW V_Wypozyczenia_Z_Klientem_Samochodem AS
-SELECT
-    W.id_wypozyczenia,
-    K.id_klienta,
-    K.imie AS imie_klienta,
-    K.nazwisko AS nazwisko_klienta,
-    S.id_samochodu,
-    S.numer_rejestracyjny,
-    M.nazwa_modelu,
-    Ma.Nazwa_marki AS marka,
-    W.data_wypozyczenia,
-    W.data_zwrotu_planowana,
-    W.data_zwrotu_rzeczywista
-FROM
-    dbo.Wypozyczenia W
-JOIN
-    dbo.Klienci K ON W.id_klienta = K.id_klienta
-JOIN
-    dbo.Samochody S ON W.id_samochodu = S.id_samochodu
-JOIN
-    dbo.Modele M ON S.id_modelu = M.id_modelu
-JOIN
-    dbo.Marki Ma ON M.id_marki = Ma.id_marki;
-
-```
-**5. Samochody i ich klasy wraz z ceną**
+![img_3.png](img_3.png)
+**4. Samochody i ich klasy wraz z ceną**
 
 Ten widok przedstawia szczegółowe informacje o samochodach wraz z ich klasą oraz ceną wynajmu. 
 ```sql
@@ -583,7 +556,8 @@ JOIN
 JOIN
     dbo.Klasy_samochodow K ON S.id_klasy = K.id_klasy;
 ```
-**6. Informacje o fakturach**
+![img_4.png](img_4.png)
+**5. Informacje o fakturach**
 
 Ten widok zawiera informacje o fakturach wraz z kwotami brutto za wypożyczenie. 
 Łączy dane faktur z informacjami o kosztach wypożyczenia, uwzględniając rabaty i dodatkowe opłaty.
@@ -608,7 +582,8 @@ JOIN
 JOIN
     dbo.Klienci K ON K.id_klienta = W.id_klienta;
 ```
-**7. Sprawdzanie płatności**
+![img_6.png](img_6.png)
+**6. Sprawdzanie płatności**
 
 Ten widok służy do sprawdzania statusu płatności za wypożyczenia. 
 Umożliwia porównanie wpłaconych kwot z oczekiwanymi kwotami brutto za wypożyczenie i identyfikację ewentualnych różnic.
@@ -632,13 +607,291 @@ JOIN
 JOIN
     dbo.V_CalkowityKosztNajmu_Z_Rabatem KosztNajmu ON P.id_wypozyczenia = KosztNajmu.id_wypozyczenia;
 ```
-## Procedury/funkcje
+![img_5.png](img_5.png)
+## Procedury
+**1. AktualizujStanSamochodu**
 
-(dla każdej procedury/funkcji należy wkleić kod polecenia definiującego procedurę wraz z komentarzem)
+Procedura "AktualizujStanSamochodu" służy do aktualizacji kolumny stan_techniczny w tabeli Samochody na podstawie przekazanego identyfikatora samochodu (id_samochodu). 
+```sql
+CREATE PROCEDURE AktualizujStanSamochodu (
+    @id_samochodu INT,
+    @nowy_stan NVARCHAR(20)
+)
+AS
+BEGIN
+    UPDATE dbo.Samochody
+    SET stan_techniczny = @nowy_stan
+    WHERE id_samochodu = @id_samochodu;
+END;
+go
+```
+**Sposób urzycia:**
+```sql
+EXECUTE AktualizujStanSamochodu @id_samochodu = 11, @nowy_stan = 'Niesprawny';
+```
+**2. GenerujRaportWypozyczen**
 
+Procedura "GenerujRaportWypozyczen" generuje raport wypożyczeń samochodów z uwzględnieniem określonego zakresu dat.
+```sql
+CREATE PROCEDURE GenerujRaportWypozyczen
+    @data_od DATE,
+    @data_do DATE
+AS
+BEGIN
+    DECLARE @raportWypozyczen TABLE
+    (
+        id_wypozyczenia INT,
+        data_wypozyczenia DATE,
+        data_zwrotu_planowana DATE,
+        data_zwrotu_rzeczywista DATE,
+        cena_dobowa DECIMAL(10, 2),
+        oplata_dodatkowa DECIMAL(10, 2),
+        klient_imie NVARCHAR(50),
+        klient_nazwisko NVARCHAR(100),
+        klient_email NVARCHAR(100),
+        samochod_model NVARCHAR(50),
+        samochod_marka NVARCHAR(50),
+        samochod_numer_rejestracyjny NVARCHAR(20),
+        pracownik_wypozyczajacy_imie NVARCHAR(50),
+        pracownik_wypozyczajacy_nazwisko NVARCHAR(50),
+        pracownik_odbierajacy_imie NVARCHAR(50),
+        pracownik_odbierajacy_nazwisko NVARCHAR(50),
+        miejsce_odbioru NVARCHAR(30),
+        miejsce_zwrotu NVARCHAR(30),
+        platnosc_rodzaj NVARCHAR(20),
+        platnosc_data DATE,
+        platnosc_kwota DECIMAL(10, 2)
+    );
+
+    INSERT INTO @raportWypozyczen
+    SELECT
+        w.id_wypozyczenia,
+        w.data_wypozyczenia,
+        w.data_zwrotu_planowana,
+        w.data_zwrotu_rzeczywista,
+        w.cena_dobowa,
+        w.oplata_dodatkowa,
+        k.imie AS klient_imie,
+        k.nazwisko AS klient_nazwisko,
+        k.email AS klient_email,
+        mo.nazwa_modelu AS samochod_model,
+        ma.Nazwa_marki AS samochod_marka,
+        s.numer_rejestracyjny AS samochod_numer_rejestracyjny,
+        pw.imie AS pracownik_wypozyczajacy_imie,
+        pw.nazwisko AS pracownik_wypozyczajacy_nazwisko,
+        po.imie AS pracownik_odbierajacy_imie,
+        po.nazwisko AS pracownik_odbierajacy_nazwisko,
+        m1.adres AS miejsce_odbioru,
+        m2.adres AS miejsce_zwrotu,
+        p.rodzaj_platnosci,
+        p.data_platnosci,
+        CAST(p.kwota_wplaty AS DECIMAL(10, 2)) AS platnosc_kwota
+    FROM
+        dbo.Wypozyczenia w
+        INNER JOIN dbo.Klienci k ON w.id_klienta = k.id_klienta
+        INNER JOIN dbo.Samochody s ON w.id_samochodu = s.id_samochodu
+        INNER JOIN dbo.Modele mo ON s.id_modelu = mo.id_modelu
+        INNER JOIN dbo.Marki ma ON mo.id_marki = ma.id_marki
+        INNER JOIN dbo.Pracownicy pw ON w.pracownik_wypozyczajacy = pw.id_pracownika
+        INNER JOIN dbo.Pracownicy po ON w.pracownik_odbierajacy = po.id_pracownika
+        INNER JOIN dbo.Miejsca m1 ON w.miejsce_odbioru = m1.id_miejsca
+        INNER JOIN dbo.Miejsca m2 ON w.miejsce_zwrotu = m2.id_miejsca
+        LEFT JOIN dbo.Platnosci p ON w.id_wypozyczenia = p.id_wypozyczenia
+    WHERE
+        w.data_wypozyczenia BETWEEN @data_od AND @data_do;
+
+    SELECT *
+    FROM @raportWypozyczen
+    ORDER BY data_wypozyczenia;
+END
+go
+```
+**Sposób urzycia:**
+```sql
+EXEC GenerujRaportWypozyczen @data_od = '2022-01-01', @data_do = '2024-01-16';
+```
+**3. PobierzWypozyczeniaWDacie**
+
+Procedura "PobierzWypozyczeniaWDacie" służy do pobierania informacji o wypożyczeniach samochodów w określonym przedziale dat.
+```sql
+CREATE PROCEDURE PobierzWypozyczeniaWDacie
+    @data_od DATE,
+    @data_do DATE
+AS
+BEGIN
+    SELECT
+        W.id_wypozyczenia,
+        K.id_klienta,
+        K.imie AS imie_klienta,
+        K.nazwisko AS nazwisko_klienta,
+        S.id_samochodu,
+        S.numer_rejestracyjny,
+        M.nazwa_modelu,
+        Ma.Nazwa_marki AS marka,
+        W.data_wypozyczenia,
+        W.data_zwrotu_planowana,
+        W.data_zwrotu_rzeczywista
+    FROM
+        dbo.Wypozyczenia W
+    JOIN
+        dbo.Klienci K ON W.id_klienta = K.id_klienta
+    JOIN
+        dbo.Samochody S ON W.id_samochodu = S.id_samochodu
+    JOIN
+        dbo.Modele M ON S.id_modelu = M.id_modelu
+    JOIN
+        dbo.Marki Ma ON M.id_marki = Ma.id_marki
+    WHERE
+        W.data_wypozyczenia BETWEEN @data_od AND @data_do
+        OR W.data_zwrotu_planowana BETWEEN @data_od AND @data_do
+        OR (@data_od BETWEEN W.data_wypozyczenia AND W.data_zwrotu_planowana)
+        OR (@data_do BETWEEN W.data_wypozyczenia AND W.data_zwrotu_planowana);
+END
+GO
+```
+**Sposób urzycia:**
+```sql
+EXECUTE PobierzWypozyczeniaWDacie @data_od = '2024-01-01', @data_do = '2024-01-16';
+```
+**4. SprawdzDostepnoscSamochodow**
+
+Procedura "SprawdzDostepnoscSamochodow" służy do sprawdzania dostępności samochodów w określonym przedziale dat.
+```sql
+CREATE PROCEDURE SprawdzDostepnoscSamochodow
+    @data_od DATE,
+    @data_do DATE
+AS
+BEGIN
+    DECLARE @dostepneSamochody TABLE
+    (
+        id_samochodu INT,
+        model NVARCHAR(50),
+        marka NVARCHAR(50),
+        kolor NVARCHAR(20),
+        rok_produkcji INT,
+        numer_rejestracyjny NVARCHAR(20),
+        przebieg INT,
+        miejsca_siedzace INT,
+        skrzynia_biegow NVARCHAR(3),
+        naped NVARCHAR(4),
+        pojemnosc_silnika DECIMAL(3, 1),
+        stan_techniczny NVARCHAR(20)
+    );
+
+    INSERT INTO @dostepneSamochody
+    SELECT
+        s.id_samochodu,
+        m.nazwa_modelu AS model,
+        mk.Nazwa_marki AS marka,
+        s.kolor,
+        s.rok_produkcji,
+        s.numer_rejestracyjny,
+        s.przebieg,
+        s.miejsca_siedzace,
+        s.skrzynia_biegow,
+        s.naped,
+        s.pojemnosc_silnika,
+        s.stan_techniczny
+    FROM
+        dbo.Samochody s
+        INNER JOIN dbo.Modele m ON s.id_modelu = m.id_modelu
+        INNER JOIN dbo.Marki mk ON m.id_marki = mk.id_marki
+    WHERE
+        s.dostepnosc = 'Dostepny'
+        AND s.id_samochodu NOT IN (
+            SELECT id_samochodu
+            FROM dbo.Wypozyczenia
+            WHERE
+                (data_wypozyczenia BETWEEN @data_od AND @data_do)
+                OR (data_zwrotu_planowana BETWEEN @data_od AND @data_do)
+                OR (@data_od BETWEEN data_wypozyczenia AND data_zwrotu_planowana)
+                OR (@data_do BETWEEN data_wypozyczenia AND data_zwrotu_planowana)
+        );
+
+    SELECT *
+    FROM @dostepneSamochody;
+END
+GO
+```
+**Sposób urzycia:**
+```sql
+EXEC SprawdzDostepnoscSamochodow @data_od = '2024-01-16', @data_do = '2024-01-20';
+```
+## Funkcje
+**1. LacznyPrzychodOkres**
+
+Funkcja LaczyPrzychodOkres służy do obliczania całkowitego przychodu z wypożyczeń samochodów w określonym przedziale dat.
+```sql
+CREATE FUNCTION LaczyPrzychodOkres(
+    @data_od DATE,
+    @data_do DATE
+)
+RETURNS DECIMAL(10, 2)
+AS
+BEGIN
+    DECLARE @Przychod DECIMAL(10, 2);
+
+    SELECT @Przychod = SUM(DATEDIFF(DAY, r.Data_Wypozyczenia, r.data_zwrotu_rzeczywista) * r.Cena_dobowa + ISNULL(r.Oplata_dodatkowa, 0))
+    FROM dbo.Wypozyczenia r
+    JOIN dbo.Samochody s ON r.id_samochodu = s.id_samochodu
+    WHERE r.Data_Wypozyczenia BETWEEN @data_od AND @data_do;
+
+    RETURN @Przychod;
+END
+GO
+```
+**Sposób urzycia:**
+```sql
+SELECT dbo.LaczyPrzychodOkres('2020-06-01', '2023-06-11') AS PrzychodZaOkres;
+```
 ## Triggery
+**1. SprawdzWiekKlienta**
 
-(dla każdego triggera należy wkleić kod polecenia definiującego trigger wraz z komentarzem)
+Trigger sprawdzajacy wiek klienta kiedy nie am 18 lat nie mozemy dodac go do tabeli klienci
+```sql
+CREATE TRIGGER SprawdzWiekKlienta
+ON dbo.Klienci
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM inserted
+        WHERE DATEDIFF(YEAR, data_urodzenia, GETDATE()) < 18
+    )
+    BEGIN
+        RAISERROR('Klient musi mieć co najmniej 18 lat.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN;
+    END;
+END;
+GO
+```
+**2. ZapobiegajWystawianiuFaktru**
 
-
-
+Trigger, ktory sprawdza poprzez sprawdzenie z widoku V_SPRAWDZENIE_PLATNOSCI, 
+czy status płatnosci jest zaplacony jesli nie to nie pozwoli nam to dodan do tabeli faktury nowej faktury
+```sql
+CREATE TRIGGER ZapobiegajWystawianiuFaktru
+ON dbo.Faktury
+INSTEAD OF INSERT
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN V_Sprawdzenie_Platnosci v ON i.id_wypozyczenia = v.id_wypozyczenia
+        WHERE v.status_platnosci != 0
+    )
+    BEGIN
+        RAISERROR('Nie można dodać faktury, jeśli płatnosć nie jest w pełni uregulowana.', 16, 1);
+    END
+    ELSE
+    BEGIN
+        INSERT INTO dbo.Faktury (numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia)
+        SELECT numer_faktury, data_wystawienia, stawka_vat, id_wypozyczenia
+        FROM inserted;
+    END
+END;
+GO
+```
