@@ -59,6 +59,7 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 
 ![img.png](img.png)
 
+
 ## Opis poszczególnych tabel
 
 # Nazwa tabeli: Klienci
