@@ -639,32 +639,6 @@ CREATE PROCEDURE GenerujRaportWypozyczen
     @data_do DATE
 AS
 BEGIN
-    DECLARE @raportWypozyczen TABLE
-    (
-        id_wypozyczenia INT,
-        data_wypozyczenia DATE,
-        data_zwrotu_planowana DATE,
-        data_zwrotu_rzeczywista DATE,
-        cena_dobowa DECIMAL(10, 2),
-        oplata_dodatkowa DECIMAL(10, 2),
-        klient_imie NVARCHAR(50),
-        klient_nazwisko NVARCHAR(100),
-        klient_email NVARCHAR(100),
-        samochod_model NVARCHAR(50),
-        samochod_marka NVARCHAR(50),
-        samochod_numer_rejestracyjny NVARCHAR(20),
-        pracownik_wypozyczajacy_imie NVARCHAR(50),
-        pracownik_wypozyczajacy_nazwisko NVARCHAR(50),
-        pracownik_odbierajacy_imie NVARCHAR(50),
-        pracownik_odbierajacy_nazwisko NVARCHAR(50),
-        miejsce_odbioru NVARCHAR(30),
-        miejsce_zwrotu NVARCHAR(30),
-        platnosc_rodzaj NVARCHAR(20),
-        platnosc_data DATE,
-        platnosc_kwota DECIMAL(10, 2)
-    );
-
-    INSERT INTO @raportWypozyczen
     SELECT
         w.id_wypozyczenia,
         w.data_wypozyczenia,
@@ -699,11 +673,9 @@ BEGIN
         INNER JOIN dbo.Miejsca m2 ON w.miejsce_zwrotu = m2.id_miejsca
         LEFT JOIN dbo.Platnosci p ON w.id_wypozyczenia = p.id_wypozyczenia
     WHERE
-        w.data_wypozyczenia BETWEEN @data_od AND @data_do;
-
-    SELECT *
-    FROM @raportWypozyczen
-    ORDER BY data_wypozyczenia;
+        w.data_wypozyczenia BETWEEN @data_od AND @data_do
+    ORDER BY
+        w.data_wypozyczenia;
 END
 go
 ```
@@ -763,23 +735,6 @@ CREATE PROCEDURE SprawdzDostepnoscSamochodow
     @data_do DATE
 AS
 BEGIN
-    DECLARE @dostepneSamochody TABLE
-    (
-        id_samochodu INT,
-        model NVARCHAR(50),
-        marka NVARCHAR(50),
-        kolor NVARCHAR(20),
-        rok_produkcji INT,
-        numer_rejestracyjny NVARCHAR(20),
-        przebieg INT,
-        miejsca_siedzace INT,
-        skrzynia_biegow NVARCHAR(3),
-        naped NVARCHAR(4),
-        pojemnosc_silnika DECIMAL(3, 1),
-        stan_techniczny NVARCHAR(20)
-    );
-
-    INSERT INTO @dostepneSamochody
     SELECT
         s.id_samochodu,
         m.nazwa_modelu AS model,
@@ -808,11 +763,10 @@ BEGIN
                 OR (@data_od BETWEEN data_wypozyczenia AND data_zwrotu_planowana)
                 OR (@data_do BETWEEN data_wypozyczenia AND data_zwrotu_planowana)
         );
-
-    SELECT *
-    FROM @dostepneSamochody;
 END
-GO
+go
+
+
 ```
 **Sposób urzycia:**
 ```sql
