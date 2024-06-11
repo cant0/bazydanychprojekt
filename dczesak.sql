@@ -66,5 +66,115 @@ INSERT INTO dbo.Klienci (imie, nazwisko, data_urodzenia, adres, miasto, kod_pocz
 ('Jakub', 'Blaszczykowski', '2001-02-14', 'ul. Bukowa 98', 'Tarnów', '33-100', '990011223', 'YZA987654', '86092589012', 5),
 ('Bartosz', 'Fabianski', '1996-04-17', 'ul. Orzechowa 102', 'Opole', '45-006', '001122334', 'BCD321987', '93103090123', 6);
 
+select id_samochodu, id_klasy from dbo.Samochody
 
-  
+
+select id_klasy, cena from dbo.Klasy_samochodow
+
+select * from dbo.Platnosci
+select * from dbo.V_Sprawdzenie_Platnosci
+
+
+CREATE PROCEDURE AktualizujStanSamochodu (
+    @id_samochodu INT,
+    @nowy_stan NVARCHAR(20)
+)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM dbo.Samochody WHERE id_samochodu = @id_samochodu)
+    BEGIN
+        PRINT 'Samochód o podanym ID nie istnieje.';
+        RETURN;
+    END
+    UPDATE dbo.Samochody
+    SET stan_techniczny = @nowy_stan
+    WHERE id_samochodu = @id_samochodu;
+END;
+GO
+
+
+EXECUTE AktualizujStanSamochodu @id_samochodu = 2, @nowy_stan = 'Sprawny';
+
+
+CREATE PROCEDURE Wypozycz (
+    @id_klienta INT,
+    @id_samochodu INT,
+    @data_wypozyczenia DATE,
+    @data_zwrotu_planowana DATE,
+    @cena_dobowa DECIMAL(10, 2),
+    @miejsce_odbioru INT,
+    @miejsce_zwrotu INT,
+    @pracownik_wypozyczajacy INT
+)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM dbo.Samochody WHERE id_samochodu = @id_samochodu AND dostepnosc = 'Dostepny')
+    BEGIN
+        PRINT 'Samochód nie jest dostępny do wypożyczenia.';
+        RETURN;
+    END
+
+    INSERT INTO Wypozyczenia (
+        id_klienta,
+        id_samochodu,
+        data_wypozyczenia,
+        data_zwrotu_planowana,
+        cena_dobowa,
+        miejsce_odbioru,
+        miejsce_zwrotu,
+        pracownik_wypozyczajacy
+    )
+    VALUES (
+        @id_klienta,
+        @id_samochodu,
+        @data_wypozyczenia,
+        @data_zwrotu_planowana,
+        @cena_dobowa,
+        @miejsce_odbioru,
+        @miejsce_zwrotu,
+        @pracownik_wypozyczajacy
+    );
+
+    UPDATE dbo.Samochody
+    SET dostepnosc = 'Niedostepny'
+    WHERE id_samochodu = @id_samochodu;
+END;
+GO
+
+execute Wypozycz 1, 4,'2024-04-11', '2024-04-13', 400,1,1,1
+
+
+CREATE PROCEDURE Zwroc (
+    @id_wypozyczenia INT,
+    @data_zwrotu_rzeczywista DATE,
+    @pracownik_odbierajacy INT,
+    @oplata_dodatkowa DECIMAL(10, 2) = NULL
+)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM Wypozyczenia WHERE id_wypozyczenia = @id_wypozyczenia)
+    BEGIN
+        PRINT 'Wypożyczenie o podanym ID nie istnieje.';
+        RETURN;
+    END
+
+    DECLARE @id_samochodu INT;
+    SELECT @id_samochodu = id_samochodu
+    FROM Wypozyczenia
+    WHERE id_wypozyczenia = @id_wypozyczenia;
+
+    UPDATE Wypozyczenia
+    SET data_zwrotu_rzeczywista = @data_zwrotu_rzeczywista,
+        pracownik_odbierajacy = @pracownik_odbierajacy,
+        oplata_dodatkowa = @oplata_dodatkowa
+    WHERE id_wypozyczenia = @id_wypozyczenia;
+
+    UPDATE dbo.Samochody
+    SET dostepnosc = 'Dostepny'
+    WHERE id_samochodu = @id_samochodu;
+
+    PRINT 'Samochód został zwrócony.';
+END;
+GO
+
+execute Zwroc 1013, '2024-04-14',1,200
