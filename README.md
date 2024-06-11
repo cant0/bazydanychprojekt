@@ -765,13 +765,23 @@ BEGIN
         );
 END
 go
-
-
 ```
 **Sposób urzycia:**
 ```sql
 EXEC SprawdzDostepnoscSamochodow @data_od = '2024-01-16', @data_do = '2024-01-20';
 ```
+
+**5. SprawdzDostepnoscSamochodow**
+
+OPIS!!!!!!
+```sql
+
+```
+**Sposób urzycia:**
+```sql
+
+```
+
 ## Funkcje
 **1. LacznyPrzychodOkres**
 
