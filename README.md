@@ -771,7 +771,7 @@ go
 EXEC SprawdzDostepnoscSamochodow @data_od = '2024-01-16', @data_do = '2024-01-20';
 ```
 
-**5. SprawdzDostepnoscSamochodow**
+**5. NAZWA**
 
 OPIS!!!!!!
 ```sql
@@ -782,6 +782,27 @@ OPIS!!!!!!
 
 ```
 
+**6. NAZWA**
+
+OPIS!!!!!!
+```sql
+
+```
+**Sposób urzycia:**
+```sql
+
+```
+
+**7. NAZWA**
+
+OPIS!!!!!!
+```sql
+
+```
+**Sposób urzycia:**
+```sql
+
+```
 ## Funkcje
 **1. LacznyPrzychodOkres**
 
