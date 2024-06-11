@@ -544,7 +544,7 @@ BEGIN
         RETURN;
     END
 
-    INSERT INTO Wypozyczenia (
+    INSERT INTO dbo.Wypozyczenia (
         id_klienta,
         id_samochodu,
         data_wypozyczenia,
@@ -570,8 +570,8 @@ BEGIN
     WHERE id_samochodu = @id_samochodu;
 END;
 GO
-
-execute Wypozycz 1, 4,'2024-04-11', '2024-04-13', 400,1,1,1
+-- Procedura do poprawy
+execute Wypozycz 1, 9,'2000-04-11', '2000-04-13', 400,1,1,1
 
 
 CREATE PROCEDURE Zwroc (
@@ -607,4 +607,4 @@ BEGIN
 END;
 GO
 
-execute Zwroc 1013, '2024-04-14',1,200
+execute Zwroc 10, '2024-05-28',1
