@@ -533,6 +533,7 @@ GROUP BY
     K.id_klienta, K.imie, K.nazwisko;
 ```
 ![img_3.png](img_3.png)
+
 **4. Samochody i ich klasy wraz z ceną**
 
 Ten widok przedstawia szczegółowe informacje o samochodach wraz z ich klasą oraz ceną wynajmu. 
@@ -558,6 +559,7 @@ JOIN
     dbo.Klasy_samochodow K ON S.id_klasy = K.id_klasy;
 ```
 ![img_4.png](img_4.png)
+
 **5. Informacje o fakturach**
 
 Ten widok zawiera informacje o fakturach wraz z kwotami brutto za wypożyczenie. 
@@ -771,37 +773,136 @@ go
 EXEC SprawdzDostepnoscSamochodow @data_od = '2024-01-16', @data_do = '2024-01-20';
 ```
 
-**5. NAZWA**
+**5. AktualizujStanSamochodu**
 
-OPIS!!!!!!
+Procedura "AktualizujStanSamochodu" umożliwia aktualizowanie stanu samochodu.
 ```sql
-
+CREATE PROCEDURE AktualizujStanSamochodu (
+    @id_samochodu INT,
+    @nowy_stan NVARCHAR(20)
+)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM dbo.Samochody WHERE id_samochodu = @id_samochodu)
+    BEGIN
+        PRINT 'Samochód o podanym ID nie istnieje.';
+        RETURN;
+    END
+    UPDATE dbo.Samochody
+    SET stan_techniczny = @nowy_stan
+    WHERE id_samochodu = @id_samochodu;
+END;
+GO
 ```
 **Sposób urzycia:**
 ```sql
-
+EXECUTE AktualizujStanSamochodu @id_samochodu = 6, @nowy_stan = 'Sprawny';
 ```
 
-**6. NAZWA**
+**6. Wypozyczenie_Auto**
 
-OPIS!!!!!!
+Ta procedura pozwala na dodanie nowego wypożyczenia samochodu i aktualizację jego dostępności, zapewniając jednocześnie,
+że w przypadku jakichkolwiek błędów, wszystkie zmiany zostaną wycofane.
+
 ```sql
+CREATE PROCEDURE Wypozyczenie_Auto
+    @id_klienta INT,
+    @id_samochodu INT,
+    @data_wypozyczenia DATE,
+    @data_zwrotu_planowana DATE,
+    @cena_dobowa DECIMAL(10, 2),
+    @miejsce_odbioru INT,
+    @pracownik_wypozyczajacy INT
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
 
+        INSERT INTO Wypozyczenia (
+            id_klienta,
+            id_samochodu,
+            data_wypozyczenia,
+            data_zwrotu_planowana,
+            cena_dobowa,
+            oplata_dodatkowa,
+            miejsce_odbioru,
+            miejsce_zwrotu,
+            pracownik_wypozyczajacy,
+            pracownik_odbierajacy
+        )
+        VALUES (
+            @id_klienta,
+            @id_samochodu,
+            @data_wypozyczenia,
+            @data_zwrotu_planowana,
+            @cena_dobowa,
+            NULL,
+            @miejsce_odbioru,
+            NULL,
+            @pracownik_wypozyczajacy,
+            NULL
+        );
+
+        UPDATE Samochody
+        SET dostepnosc = 'Niedostepny'
+        WHERE id_samochodu = @id_samochodu;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
 ```
 **Sposób urzycia:**
 ```sql
-
+EXECUTE Wypozyczenie_Auto @id_klienta = 1, @id_samochodu = 9,@data_wypozyczenia = '2000-04-11', @data_zwrotu_planowana = '2000-04-13', @cena_dobowa = 400,@miejsce_odbioru = 1, @pracownik_wypozyczajacy = 1
 ```
 
-**7. NAZWA**
+**7. Zwroc**
 
-OPIS!!!!!!
+Procedura "Zwroc" obsługuje proces zwrotu wypożyczonego samochodu.
 ```sql
+CREATE PROCEDURE Zwroc (
+    @id_wypozyczenia INT,
+    @data_zwrotu_rzeczywista DATE,
+    @miejsce_zwrotu INT,
+    @pracownik_odbierajacy INT,
+    @oplata_dodatkowa DECIMAL(10, 2) = NULL
+)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM Wypozyczenia WHERE id_wypozyczenia = @id_wypozyczenia)
+    BEGIN
+        PRINT 'Wypożyczenie o podanym ID nie istnieje.';
+        RETURN;
+    END
 
+    DECLARE @id_samochodu INT;
+    SELECT @id_samochodu = id_samochodu
+    FROM Wypozyczenia
+    WHERE id_wypozyczenia = @id_wypozyczenia;
+
+    UPDATE Wypozyczenia
+    SET data_zwrotu_rzeczywista = @data_zwrotu_rzeczywista,
+        miejsce_zwrotu = @miejsce_zwrotu,
+        pracownik_odbierajacy = @pracownik_odbierajacy,
+        oplata_dodatkowa = @oplata_dodatkowa
+    WHERE id_wypozyczenia = @id_wypozyczenia;
+
+    UPDATE dbo.Samochody
+    SET dostepnosc = 'Dostepny'
+    WHERE id_samochodu = @id_samochodu;
+
+    PRINT 'Samochód został zwrócony.';
+END;
+GO
 ```
 **Sposób urzycia:**
 ```sql
-
+EXECUTE Zwroc @id_wypozyczenia = 1019, @data_zwrotu_rzeczywista = '2024-05-28', @miejsce_zwrotu = 3, @pracownik_odbierajacy = 1
 ```
 ## Funkcje
 **1. LacznyPrzychodOkres**
