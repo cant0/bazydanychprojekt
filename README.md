@@ -19,7 +19,7 @@
 
 **Temat:** Wypożyczalnia samochodów
 
-**Autorzy:** Katarzyna Studnicka, Wiktor Piotrowski, Grzegorz Szczurek, Dawid Czesak
+**Autorzy:** Katarzyna Studnicka **(25%)**, Wiktor Piotrowski **(25%)**, Grzegorz Szczurek **(25%)**, Dawid Czesak **(25%)**
 
 --- 
 
