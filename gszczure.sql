@@ -523,60 +523,69 @@ END;
 GO
 
 
-EXECUTE AktualizujStanSamochodu @id_samochodu = 2, @nowy_stan = 'Sprawny';
+EXECUTE AktualizujStanSamochodu @id_samochodu = 6, @nowy_stan = 'Sprawny';
 
 
-CREATE PROCEDURE Wypozycz (
+CREATE PROCEDURE Wypozyczenie_Auto
     @id_klienta INT,
     @id_samochodu INT,
     @data_wypozyczenia DATE,
     @data_zwrotu_planowana DATE,
     @cena_dobowa DECIMAL(10, 2),
     @miejsce_odbioru INT,
-    @miejsce_zwrotu INT,
     @pracownik_wypozyczajacy INT
-)
 AS
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM dbo.Samochody WHERE id_samochodu = @id_samochodu AND dostepnosc = 'Dostepny')
-    BEGIN
-        PRINT 'Samochód nie jest dostępny do wypożyczenia.';
-        RETURN;
-    END
+    BEGIN TRY
+        BEGIN TRANSACTION;
 
-    INSERT INTO dbo.Wypozyczenia (
-        id_klienta,
-        id_samochodu,
-        data_wypozyczenia,
-        data_zwrotu_planowana,
-        cena_dobowa,
-        miejsce_odbioru,
-        miejsce_zwrotu,
-        pracownik_wypozyczajacy
-    )
-    VALUES (
-        @id_klienta,
-        @id_samochodu,
-        @data_wypozyczenia,
-        @data_zwrotu_planowana,
-        @cena_dobowa,
-        @miejsce_odbioru,
-        @miejsce_zwrotu,
-        @pracownik_wypozyczajacy
-    );
+        INSERT INTO Wypozyczenia (
+            id_klienta,
+            id_samochodu,
+            data_wypozyczenia,
+            data_zwrotu_planowana,
+            cena_dobowa,
+            oplata_dodatkowa,
+            miejsce_odbioru,
+            miejsce_zwrotu,
+            pracownik_wypozyczajacy,
+            pracownik_odbierajacy
+        )
+        VALUES (
+            @id_klienta,
+            @id_samochodu,
+            @data_wypozyczenia,
+            @data_zwrotu_planowana,
+            @cena_dobowa,
+            NULL,
+            @miejsce_odbioru,
+            NULL,
+            @pracownik_wypozyczajacy,
+            NULL
+        );
 
-    UPDATE dbo.Samochody
-    SET dostepnosc = 'Niedostepny'
-    WHERE id_samochodu = @id_samochodu;
-END;
+        UPDATE Samochody
+        SET dostepnosc = 'Niedostepny'
+        WHERE id_samochodu = @id_samochodu;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
 GO
--- Procedura do poprawy
-execute Wypozycz 1, 9,'2000-04-11', '2000-04-13', 400,1,1,1
 
+-- Procedura do poprawy
+execute Wypozyczenie_Auto 1, 9,'2000-04-11', '2000-04-13', 400,1,1
+
+execute Wypozyczenie_Auto @id_klienta = 1, @id_samochodu = 9,@data_wypozyczenia = '2000-04-11', @data_zwrotu_planowana = '2000-04-13', @cena_dobowa = 400,@miejsce_odbioru = 1, @pracownik_wypozyczajacy = 1
 
 CREATE PROCEDURE Zwroc (
     @id_wypozyczenia INT,
     @data_zwrotu_rzeczywista DATE,
+    @miejsce_zwrotu INT,
     @pracownik_odbierajacy INT,
     @oplata_dodatkowa DECIMAL(10, 2) = NULL
 )
@@ -595,6 +604,7 @@ BEGIN
 
     UPDATE Wypozyczenia
     SET data_zwrotu_rzeczywista = @data_zwrotu_rzeczywista,
+        miejsce_zwrotu = @miejsce_zwrotu,
         pracownik_odbierajacy = @pracownik_odbierajacy,
         oplata_dodatkowa = @oplata_dodatkowa
     WHERE id_wypozyczenia = @id_wypozyczenia;
@@ -607,4 +617,5 @@ BEGIN
 END;
 GO
 
-execute Zwroc 10, '2024-05-28',1
+execute Zwroc 1019, '2024-05-28', '2',1
+execute Zwroc @id_wypozyczenia = 1019, @data_zwrotu_rzeczywista = '2024-05-28', @miejsce_zwrotu = 3, @pracownik_odbierajacy = 1
