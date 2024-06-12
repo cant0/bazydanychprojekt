@@ -586,6 +586,7 @@ JOIN
     dbo.Klienci K ON K.id_klienta = W.id_klienta;
 ```
 ![img_6.png](img_6.png)
+
 **6. Sprawdzanie płatności**
 
 Ten widok służy do sprawdzania statusu płatności za wypożyczenia. 
@@ -611,6 +612,7 @@ JOIN
     dbo.V_CalkowityKosztNajmu_Z_Rabatem KosztNajmu ON P.id_wypozyczenia = KosztNajmu.id_wypozyczenia;
 ```
 ![img_5.png](img_5.png)
+
 ## Procedury
 **1. AktualizujStanSamochodu**
 
