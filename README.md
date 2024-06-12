@@ -57,7 +57,7 @@ Naszym celem jest stworzenie systemu zarządzania wypożyczalnią samochodów, k
 
 ## Schemat bazy danych
 
-![img.png](img.png)
+![img.png](Photo/img.png)
 
 
 ## Opis poszczególnych tabel
@@ -487,7 +487,7 @@ WHERE
     W.data_zwrotu_rzeczywista >= W.data_wypozyczenia;
 GO
 ```
-![img_1.png](img_1.png)
+![img_1.png](Photo/img_1.png)
 
 **2. Dosępność samochodów**
 
@@ -514,7 +514,7 @@ WHERE
     S.dostepnosc = 'Dostepny';
 GO
 ```
-![img_2.png](img_2.png)
+![img_2.png](Photo/img_2.png)
 
 **3. Klienci i ich liczba wypożyczeń**
 
@@ -534,7 +534,7 @@ LEFT JOIN
 GROUP BY
     K.id_klienta, K.imie, K.nazwisko;
 ```
-![img_3.png](img_3.png)
+![img_3.png](Photo/img_3.png)
 
 **4. Samochody i ich klasy wraz z ceną**
 
@@ -560,7 +560,7 @@ JOIN
 JOIN
     dbo.Klasy_samochodow K ON S.id_klasy = K.id_klasy;
 ```
-![img_4.png](img_4.png)
+![img_4.png](Photo/img_4.png)
 
 **5. Informacje o fakturach**
 
@@ -587,7 +587,7 @@ JOIN
 JOIN
     dbo.Klienci K ON K.id_klienta = W.id_klienta;
 ```
-![img_6.png](img_6.png)
+![img_6.png](Photo/img_6.png)
 
 **6. Sprawdzanie płatności**
 
@@ -613,7 +613,7 @@ JOIN
 JOIN
     dbo.V_CalkowityKosztNajmu_Z_Rabatem KosztNajmu ON P.id_wypozyczenia = KosztNajmu.id_wypozyczenia;
 ```
-![img_5.png](img_5.png)
+![img_5.png](Photo/img_5.png)
 
 ## Procedury
 **1. AktualizujStanSamochodu**
@@ -959,7 +959,7 @@ END;
 GO
 ```
 
-![img_8.png](img_8.png)
+![img_8.png](Photo/img_8.png)
 
 **2. ZapobiegajWystawianiuFaktru**
 
@@ -990,4 +990,4 @@ END;
 GO
 ```
 
-![img_7.png](img_7.png)
+![img_7.png](Photo/img_7.png)
