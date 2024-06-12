@@ -958,6 +958,7 @@ BEGIN
 END;
 GO
 ```
+
 **2. ZapobiegajWystawianiuFaktru**
 
 Trigger, ktory sprawdza poprzez sprawdzenie z widoku V_SPRAWDZENIE_PLATNOSCI, 
@@ -986,3 +987,5 @@ BEGIN
 END;
 GO
 ```
+
+![img_7.png](img_7.png)
