@@ -488,6 +488,7 @@ WHERE
 GO
 ```
 ![img_1.png](img_1.png)
+
 **2. Dosępność samochodów**
 
 Widok "V_Dostepne_Samochody" został stworzony, aby dostarczyć informacje o wszystkich dostępnych samochodach w bazie danych. 
@@ -514,6 +515,7 @@ WHERE
 GO
 ```
 ![img_2.png](img_2.png)
+
 **3. Klienci i ich liczba wypożyczeń**
 
 Widok "V_Klienci_Z_Wypozyczeniami" przedstawia klientów wraz z liczbą dokonanych przez nich wypożyczeń.
