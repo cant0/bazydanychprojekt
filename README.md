@@ -959,6 +959,8 @@ END;
 GO
 ```
 
+![img_8.png](img_8.png)
+
 **2. ZapobiegajWystawianiuFaktru**
 
 Trigger, ktory sprawdza poprzez sprawdzenie z widoku V_SPRAWDZENIE_PLATNOSCI, 
